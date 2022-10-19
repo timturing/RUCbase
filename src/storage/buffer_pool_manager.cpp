@@ -44,6 +44,7 @@ Page *BufferPoolManager::FetchPage(PageId page_id) {
     //  2.     If R is dirty, write it back to the disk.
     //  3.     Delete R from the page table and insert P.
     //  4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
+    assert(page_id.page_no!=INVALID_PAGE_ID);
     std::scoped_lock lock{latch_};
     // Page(R) for exchange
     frame_id_t *frame_id = new frame_id_t;
@@ -52,6 +53,11 @@ Page *BufferPoolManager::FetchPage(PageId page_id) {
     for (int i = 0; i < int(pool_size_ - free_list_.size()); i++) {
         if (pages_[i].pin_count_ <= 0) {
             flag = false;
+            break;
+        }
+        if(pages_[i].id_==page_id)
+        {
+            flag=false;
             break;
         }
     }
@@ -114,13 +120,14 @@ bool BufferPoolManager::UnpinPage(PageId page_id, bool is_dirty) {
             pages_[*frame_id].pin_count_--;
         }
         if (pages_[*frame_id].pin_count_ == 0) {
-            //!write
-            disk_manager_->write_page(pages_[*frame_id].GetPageId().fd, pages_[*frame_id].GetPageId().page_no, pages_[*frame_id].GetData(), PAGE_SIZE);
+            //BUG write
+            // disk_manager_->write_page(pages_[*frame_id].GetPageId().fd, pages_[*frame_id].GetPageId().page_no, pages_[*frame_id].GetData(), PAGE_SIZE);
             replacer_->Unpin(*frame_id);
-            if (is_dirty == true) {
+            
+        }
+        if (is_dirty == true) {
                 pages_[*frame_id].is_dirty_ = true;
             }
-        }
         return true;
     } else
         return false;
@@ -178,6 +185,11 @@ Page *BufferPoolManager::NewPage(PageId *page_id) {
     if (free_list_.empty()) {
         //?不一定对，这里Victim直接pop了
         replacer_->Victim(frame_id);
+        if (pages_[*frame_id].is_dirty_) {
+        disk_manager_->write_page(pages_[*frame_id].GetPageId().fd, pages_[*frame_id].GetPageId().page_no,
+                                  pages_[*frame_id].GetData(), PAGE_SIZE);
+        pages_[*frame_id].is_dirty_ = false;
+        }
         from_free = false;
     } else {
         //只有有释放的时候才能push_back。
@@ -190,8 +202,8 @@ Page *BufferPoolManager::NewPage(PageId *page_id) {
     page_table_.insert({*page_id, *frame_id});
     pages_[*frame_id].ResetMemory();
     pages_[*frame_id].id_ = *page_id;
-    pages_[*frame_id].pin_count_ = 1;
     replacer_->Pin(*frame_id);
+    pages_[*frame_id].pin_count_ = 1;
     auto retp = (pages_ + (*frame_id));
     delete frame_id;
     return retp;
