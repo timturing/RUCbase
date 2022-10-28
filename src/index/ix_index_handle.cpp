@@ -52,7 +52,7 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     // 3. 把rid存入result参数中
     // TODO 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
     IxNodeHandle* leaf = FindLeafPage(key,Operation::FIND,transaction);
-    Rid** value;
+    Rid** value=nullptr;
     bool flag = leaf->LeafLookup(key,value);
     if(flag)result->push_back(**value);
     return flag;
