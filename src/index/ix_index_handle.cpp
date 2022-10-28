@@ -24,8 +24,17 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
     // 1. 获取根节点
     // 2. 从根节点开始不断向下查找目标key
     // 3. 找到包含该key值的叶子结点停止查找，并返回叶子节点
-
-    return nullptr;
+    page_id_t rootpageno = file_hdr_.root_page;
+    page_id_t pageno;
+    IxNodeHandle* now = FetchNode(rootpageno);
+    //只要还不是叶子节点,就在内部节点一路往下找
+    while(!now->page_hdr->is_leaf)
+    {
+        pageno = now->InternalLookup(key);
+        now = FetchNode(pageno);
+    }
+    //现在它是叶子节点了
+    return now;
 }
 
 /**
@@ -41,9 +50,12 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     // 1. 获取目标key值所在的叶子结点
     // 2. 在叶子节点中查找目标key值的位置，并读取key对应的rid
     // 3. 把rid存入result参数中
-    // 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
-
-    return false;
+    // TODO 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
+    IxNodeHandle* leaf = FindLeafPage(key,Operation::FIND,transaction);
+    Rid** value;
+    bool flag = leaf->LeafLookup(key,value);
+    if(flag)result->push_back(**value);
+    return flag;
 }
 
 /**

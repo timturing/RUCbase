@@ -122,8 +122,14 @@ bool IxNodeHandle::LeafLookup(const char *key, Rid **value) {
     // 2. 判断目标key是否存在
     // 3. 如果存在，获取key对应的Rid，并赋值给传出参数value
     // 提示：可以调用lower_bound()和get_rid()函数。
+    int key_idx = lower_bound(key);
+    if(key_idx==this->page_hdr->num_key)return false;//最后一个，因为这个似乎不能去get_key所以特判
+    if(ix_compare(get_key(key_idx),key,file_hdr->col_type,file_hdr->col_len)!=0)return false;
 
-    return false;
+    //如果存在
+    //TODO key_idx和rid_idx一样吗?
+    *value = get_rid(key_idx);
+    return true;
 }
 
 /**
@@ -136,8 +142,9 @@ page_id_t IxNodeHandle::InternalLookup(const char *key) {
     // 1. 查找当前非叶子节点中目标key所在孩子节点（子树）的位置
     // 2. 获取该孩子节点（子树）所在页面的编号
     // 3. 返回页面编号
-
-    return -1;
+    int rid_idx = upper_bound(key)-1;
+    Rid*  ridp = get_rid(rid_idx);
+    return ridp->page_no;
 }
 
 /**
