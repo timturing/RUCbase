@@ -10,8 +10,48 @@ int IxNodeHandle::lower_bound(const char *target) const {
     // Todo:
     // 查找当前节点中第一个大于等于target的key，并返回key的位置给上层
     // 提示: 可以采用多种查找方式，如顺序遍历、二分查找等；使用ix_compare()函数进行比较
-
-    return -1;
+    int num_key = this->page_hdr->num_key;
+    int key_idx = 0;
+    if(binary_search)
+    {
+        //迭代式二分
+        int first = 0,last=num_key-1,middle;
+        char *src;
+        while(first<last)
+        {
+            middle = (first+last)/2;
+            src = get_key(middle);
+            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<0)
+            {
+                first=middle+1;
+                key_idx=first;
+            }
+            else
+            {
+                last=middle;
+                key_idx=last;
+            }
+        }
+        if(key_idx==num_key-1)
+        {
+            if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<0)
+            {
+                return num_key;
+            }
+        }
+    }
+    else
+    {
+        for(key_idx=0;key_idx<num_key;key_idx++)
+        {
+            char* src = get_key(key_idx);
+            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>=0)
+            {
+                return key_idx;
+            }
+        }
+    }
+    return key_idx;
 }
 
 /**
@@ -24,8 +64,48 @@ int IxNodeHandle::upper_bound(const char *target) const {
     // Todo:
     // 查找当前节点中第一个大于target的key，并返回key的位置给上层
     // 提示: 可以采用多种查找方式：顺序遍历、二分查找等；使用ix_compare()函数进行比较
-
-    return -1;
+    int num_key = this->page_hdr->num_key;
+    int key_idx = 0;
+    if(binary_search)
+    {
+        //迭代式二分
+        int first = 0,last=num_key-1,middle;
+        char *src;
+        while(first<last)
+        {
+            middle = (first+last)/2;
+            src = get_key(middle);
+            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<=0)
+            {
+                first=middle+1;
+                key_idx=first;
+            }
+            else
+            {
+                last=middle;
+                key_idx=last;
+            }
+        }
+        if(key_idx==num_key-1)
+        {
+            if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<=0)
+            {
+                return num_key;
+            }
+        }
+    }
+    else
+    {
+        for(key_idx=0;key_idx<num_key;key_idx++)
+        {
+            char* src = get_key(key_idx);
+            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>0)
+            {
+                return key_idx;
+            }
+        }
+    }
+    return key_idx;
 }
 
 /**
