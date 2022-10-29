@@ -167,6 +167,7 @@ void IxNodeHandle::insert_pairs(int pos, const char *key, const Rid *rid, int n)
     // 2. 通过key获取n个连续键值对的key值，并把n个key值插入到pos位置
     // 3. 通过rid获取n个连续键值对的rid值，并把n个rid值插入到pos位置
     // 4. 更新当前节点的键数量
+    //TODO 如果覆盖了后面的Rid怎么办
     int num_key = page_hdr->num_key;
     // 1.
     if(pos<0||pos>num_key)return;
@@ -203,7 +204,12 @@ int IxNodeHandle::Insert(const char *key, const Rid &value) {
     // 2. 如果key重复则不插入
     // 3. 如果key不重复则插入键值对
     // 4. 返回完成插入操作之后的键值对数量
-
+    int key_idx = lower_bound(key);
+    if(key_idx==this->page_hdr->num_key||ix_compare(get_key(key_idx),key,file_hdr->col_type,file_hdr->col_len)!=0)
+    {
+        insert_pair(key_idx,key,value);
+        return page_hdr->num_key;
+    }
     return -1;
 }
 
