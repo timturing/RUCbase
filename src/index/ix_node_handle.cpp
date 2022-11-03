@@ -157,9 +157,9 @@ page_id_t IxNodeHandle::InternalLookup(const char *key) {
     // 1. 查找当前非叶子节点中目标key所在孩子节点（子树）的位置
     // 2. 获取该孩子节点（子树）所在页面的编号
     // 3. 返回页面编号
-    int rid_idx = upper_bound(key)-1;
-    Rid*  ridp = get_rid(rid_idx);
-    return ridp->page_no;
+    int rid_idx = upper_bound(key);
+    if(rid_idx!=0)rid_idx-=1;//如果等于0说明所有key都比它大，其实都不用查了
+    return ValueAt(rid_idx);
 }
 
 /**
@@ -187,17 +187,15 @@ void IxNodeHandle::insert_pairs(int pos, const char *key, const Rid *rid, int n)
     {
         return;
     }
-    char* key_slot = get_key(0);
-    Rid*  rid_slot = get_rid(0);
     for(int i=num_key-1;i>=pos;i--)
     {
-        memmove(key_slot+(i+n)*file_hdr->col_len,key_slot+i*file_hdr->col_len,file_hdr->col_len);
-        memmove(rid_slot+(i+n),rid_slot+i,sizeof(Rid));
+        memmove(get_key(i+n),get_key(i),file_hdr->col_len);
+        memmove(get_rid(i+n),get_rid(i),sizeof(Rid));
     }
     for(int i=0;i<n;i++)
     {
-        memmove(key_slot+(pos+i)*file_hdr->col_len,key+i*file_hdr->col_len,file_hdr->col_len);
-        memmove(rid_slot+(pos+i),rid+i,sizeof(Rid));
+        memmove(get_key(pos+i),key+i*file_hdr->col_len,file_hdr->col_len);
+        memmove(get_rid(pos+i),rid+i,sizeof(Rid));
     }
     page_hdr->num_key += n;
 

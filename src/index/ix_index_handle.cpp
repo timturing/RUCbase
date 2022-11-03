@@ -30,7 +30,7 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
     //只要还不是叶子节点,就在内部节点一路往下找
     while (!now->page_hdr->is_leaf) {
         pageno = now->InternalLookup(key);
-        buffer_pool_manager_->UnpinPage(now->GetPageId(), false);  //是要unpin吗
+        // buffer_pool_manager_->UnpinPage(now->GetPageId(), false);  //是要unpin吗
         now = FetchNode(pageno);
     }
     //现在它是叶子节点了
@@ -55,6 +55,7 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     Rid **value = new (Rid *);
     bool flag = leaf->LeafLookup(key, value);
     if (flag) result->push_back(**value);
+    // delete value;
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);  //这里也是unpin吗
     return flag;
 }
@@ -71,7 +72,8 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // 1. 查找key值应该插入到哪个叶子节点
     // 2. 在该叶子节点中插入键值对
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
-    // 提示：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
+    // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
+    // std::scoped_lock lock{root_latch_};
     IxNodeHandle *leaf = FindLeafPage(key, Operation::INSERT, transaction);
     int before_insert = leaf->page_hdr->num_key;
     int after_insert = leaf->Insert(key, value);
@@ -174,8 +176,13 @@ void IxIndexHandle::InsertIntoParent(IxNodeHandle *old_node, const char *key, Ix
         new_root->page_hdr->parent = INVALID_PAGE_ID;
         new_root->page_hdr->next_leaf = INVALID_PAGE_ID;
         new_root->page_hdr->prev_leaf = INVALID_PAGE_ID;   
-        new_root->Insert(old_node->get_key(0), *old_node->get_rid(0)); // BUG加这句就死了，为什么
-        new_root->Insert(new_node->get_key(0), *new_node->get_rid(0)); 
+        // new_root->Insert(old_node->get_key(0), *old_node->get_rid(0)); // BUG加这句就死了，为什么！FIXED：因为不是传子节点的子树，而是把子节点当子树
+        // new_root->Insert(new_node->get_key(0), *new_node->get_rid(0)); 
+        new_root->set_key(0,old_node->get_key(0));
+        new_root->set_rid(0,Rid{old_node->GetPageNo(),-1});
+        new_root->set_key(1,new_node->get_key(0));
+        new_root->set_rid(1,Rid{new_node->GetPageNo(),-1});
+        new_root->page_hdr->num_key=2;
         //将old_node和new_node的父节点设置为new_root
         maintain_child(new_root, 0);
         maintain_child(new_root, 1);
@@ -185,11 +192,11 @@ void IxIndexHandle::InsertIntoParent(IxNodeHandle *old_node, const char *key, Ix
     } else {
         //如果old_node不是根节点,则直接在其父节点中插入key
         IxNodeHandle *parent = FetchNode(old_node->page_hdr->parent);
-        parent->Insert(new_node->get_key(0), *new_node->get_rid(0));
-        if (old_node->page_hdr->next_free_page_no == INVALID_PAGE_ID) {
-            file_hdr_.last_leaf = new_node->GetPageNo();
-            disk_manager_->write_page(fd_, IX_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
-        }
+        parent->Insert(new_node->get_key(0),Rid{new_node->GetPageNo(),-1});
+        // if (old_node->page_hdr->next_free_page_no == INVALID_PAGE_ID) {
+        //     file_hdr_.last_leaf = new_node->GetPageNo();
+        //     disk_manager_->write_page(fd_, IX_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
+        // }
         //如果父节点满了,就要分裂
         if (parent->page_hdr->num_key == new_node->GetMaxSize()) {
             IxNodeHandle *newparent = Split(parent);
