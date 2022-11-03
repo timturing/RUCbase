@@ -11,47 +11,53 @@ int IxNodeHandle::lower_bound(const char *target) const {
     // 查找当前节点中第一个大于等于target的key，并返回key的位置给上层
     // 提示: 可以采用多种查找方式，如顺序遍历、二分查找等；使用ix_compare()函数进行比较
     int num_key = this->page_hdr->num_key;
-    int key_idx = 0;
-    if(binary_search)
-    {
-        //迭代式二分
-        int first = 0,last=num_key-1,middle;
-        char *src;
-        while(first<last)
-        {
-            middle = (first+last)/2;
-            src = get_key(middle);
-            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<0)
-            {
-                first=middle+1;
-                key_idx=first;
-            }
-            else
-            {
-                last=middle;
-                key_idx=last;
-            }
-        }
-        if(key_idx==num_key-1)
-        {
-            if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<0)
-            {
-                return num_key;
-            }
-        }
+    int i = 0;
+    while (i < num_key && ix_compare(get_key(i), target, file_hdr->col_type,file_hdr->col_len) < 0) {
+        i++;
     }
-    else
-    {
-        for(key_idx=0;key_idx<num_key;key_idx++)
-        {
-            char* src = get_key(key_idx);
-            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>=0)
-            {
-                return key_idx;
-            }
-        }
-    }
-    return key_idx;
+    return i;
+
+    // int key_idx = 0;
+    // if(binary_search)
+    // {
+    //     //迭代式二分
+    //     int first = 0,last=num_key-1,middle;
+    //     char *src;
+    //     while(first<last)
+    //     {
+    //         middle = (first+last)/2;
+    //         src = get_key(middle);
+    //         if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<0)
+    //         {
+    //             first=middle+1;
+    //             key_idx=first;
+    //         }
+    //         else
+    //         {
+    //             last=middle;
+    //             key_idx=last;
+    //         }
+    //     }
+    //     if(key_idx==num_key-1)
+    //     {
+    //         if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<0)
+    //         {
+    //             return num_key;
+    //         }
+    //     }
+    // }
+    // else
+    // {
+    //     for(key_idx=0;key_idx<num_key;key_idx++)
+    //     {
+    //         char* src = get_key(key_idx);
+    //         if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>=0)
+    //         {
+    //             return key_idx;
+    //         }
+    //     }
+    // }
+    // return key_idx;
 }
 
 /**
@@ -65,47 +71,52 @@ int IxNodeHandle::upper_bound(const char *target) const {
     // 查找当前节点中第一个大于target的key，并返回key的位置给上层
     // 提示: 可以采用多种查找方式：顺序遍历、二分查找等；使用ix_compare()函数进行比较
     int num_key = this->page_hdr->num_key;
-    int key_idx = 0;
-    if(binary_search)
-    {
-        //迭代式二分
-        int first = 0,last=num_key-1,middle;
-        char *src;
-        while(first<last)
-        {
-            middle = (first+last)/2;
-            src = get_key(middle);
-            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<=0)
-            {
-                first=middle+1;
-                key_idx=first;
-            }
-            else
-            {
-                last=middle;
-                key_idx=last;
-            }
-        }
-        if(key_idx==num_key-1)
-        {
-            if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<=0)
-            {
-                return num_key;
-            }
-        }
+    int i = 1;
+    while (i < num_key && ix_compare(get_key(i), target, file_hdr->col_type,file_hdr->col_len) <= 0) {
+        i++;
     }
-    else
-    {
-        for(key_idx=0;key_idx<num_key;key_idx++)
-        {
-            char* src = get_key(key_idx);
-            if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>0)
-            {
-                return key_idx;
-            }
-        }
-    }
-    return key_idx;
+    return i;
+    // int key_idx = 0;
+    // if(binary_search)
+    // {
+    //     //迭代式二分
+    //     int first = 0,last=num_key-1,middle;
+    //     char *src;
+    //     while(first<last)
+    //     {
+    //         middle = (first+last)/2;
+    //         src = get_key(middle);
+    //         if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)<=0)
+    //         {
+    //             first=middle+1;
+    //             key_idx=first;
+    //         }
+    //         else
+    //         {
+    //             last=middle;
+    //             key_idx=last;
+    //         }
+    //     }
+    //     if(key_idx==num_key-1)
+    //     {
+    //         if(ix_compare(get_key(num_key-1),target,file_hdr->col_type,file_hdr->col_len)<=0)
+    //         {
+    //             return num_key;
+    //         }
+    //     }
+    // }
+    // else
+    // {
+    //     for(key_idx=0;key_idx<num_key;key_idx++)
+    //     {
+    //         char* src = get_key(key_idx);
+    //         if(ix_compare(src,target,file_hdr->col_type,file_hdr->col_len)>0)
+    //         {
+    //             return key_idx;
+    //         }
+    //     }
+    // }
+    // return key_idx;
 }
 
 /**
@@ -123,11 +134,15 @@ bool IxNodeHandle::LeafLookup(const char *key, Rid **value) {
     // 3. 如果存在，获取key对应的Rid，并赋值给传出参数value
     // 提示：可以调用lower_bound()和get_rid()函数。
     int key_idx = lower_bound(key);
-    if(key_idx==this->page_hdr->num_key)return false;//最后一个，因为这个似乎不能去get_key所以特判
-    if(ix_compare(get_key(key_idx),key,file_hdr->col_type,file_hdr->col_len)!=0)return false;
-
-    //如果存在
-    //TODO key_idx和rid_idx一样吗?
+    if(key_idx==this->page_hdr->num_key)
+    {
+        return false;
+    } 
+    char* src = get_key(key_idx);
+    if(ix_compare(src,key,file_hdr->col_type,file_hdr->col_len)!=0)
+    {
+        return false;
+    }
     *value = get_rid(key_idx);
     return true;
 }
@@ -167,23 +182,40 @@ void IxNodeHandle::insert_pairs(int pos, const char *key, const Rid *rid, int n)
     // 2. 通过key获取n个连续键值对的key值，并把n个key值插入到pos位置
     // 3. 通过rid获取n个连续键值对的rid值，并把n个rid值插入到pos位置
     // 4. 更新当前节点的键数量
-    //TODO 如果覆盖了后面的Rid怎么办
     int num_key = page_hdr->num_key;
-    // 1.
-    if(pos<0||pos>num_key)return;
-    // 2.
-    char* keydes =  get_key(pos);
-    int keylen = n*file_hdr->col_len;
-    memmove(keydes+keylen,keydes,keylen);
-    memmove(keydes,key,keylen);
-    // 3.
-    Rid* riddes = get_rid(pos);
-    int ridlen = n*sizeof(Rid);
-    memmove(riddes+n,riddes,ridlen);
-    memmove(riddes,rid,ridlen);
-    // 4.
-    page_hdr->num_key=num_key+n;
-    return;
+    if(pos<0||pos>num_key)
+    {
+        return;
+    }
+    char* key_slot = get_key(0);
+    Rid*  rid_slot = get_rid(0);
+    for(int i=num_key-1;i>=pos;i--)
+    {
+        memmove(key_slot+(i+n)*file_hdr->col_len,key_slot+i*file_hdr->col_len,file_hdr->col_len);
+        memmove(rid_slot+(i+n),rid_slot+i,sizeof(Rid));
+    }
+    for(int i=0;i<n;i++)
+    {
+        memmove(key_slot+(pos+i)*file_hdr->col_len,key+i*file_hdr->col_len,file_hdr->col_len);
+        memmove(rid_slot+(pos+i),rid+i,sizeof(Rid));
+    }
+    page_hdr->num_key += n;
+
+    // // 1.
+    // if(pos<0||pos>num_key)return;
+    // // 2.
+    // char* keydes =  get_key(pos);
+    // int keylen = n*file_hdr->col_len;
+    // memmove(keydes+keylen,keydes,keylen);
+    // memmove(keydes,key,keylen);
+    // // 3.
+    // Rid* riddes = get_rid(pos);
+    // int ridlen = n*sizeof(Rid);
+    // memmove(riddes+n,riddes,ridlen);
+    // memmove(riddes,rid,ridlen);
+    // // 4.
+    // page_hdr->num_key=num_key+n;
+    // return;
 }
 
 /**
@@ -205,12 +237,12 @@ int IxNodeHandle::Insert(const char *key, const Rid &value) {
     // 3. 如果key不重复则插入键值对
     // 4. 返回完成插入操作之后的键值对数量
     int key_idx = lower_bound(key);
-    if(key_idx==this->page_hdr->num_key||ix_compare(get_key(key_idx),key,file_hdr->col_type,file_hdr->col_len)!=0)
+    if(key_idx<page_hdr->num_key&&ix_compare(get_key(key_idx),key,file_hdr->col_type,file_hdr->col_len)==0)
     {
-        insert_pair(key_idx,key,value);
         return page_hdr->num_key;
     }
-    return -1;
+    insert_pair(key_idx,key,value);
+    return page_hdr->num_key;
 }
 
 /**
