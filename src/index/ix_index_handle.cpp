@@ -222,7 +222,17 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
     // 3. 如果删除成功需要调用CoalesceOrRedistribute来进行合并或重分配操作，并根据函数返回结果判断是否有结点需要删除
     // 4. 如果需要并发，并且需要删除叶子结点，则需要在事务的delete_page_set中添加删除结点的对应页面；记得处理并发的上锁
 
-    return false;
+    // TODO 注意要处理并发
+    //获取叶子结点
+    IxNodeHandle *leaf = FindLeafPage(key, Operation::DELETE,transaction);
+    //在叶子结点中删除键值对
+    bool success = leaf->Remove(key);
+    if (success) {
+        //如果删除成功,则需要调用CoalesceOrRedistribute来进行合并或重分配操作
+        CoalesceOrRedistribute(leaf, transaction);
+    }
+    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
+    return success;
 }
 
 /**
@@ -246,7 +256,31 @@ bool IxIndexHandle::CoalesceOrRedistribute(IxNodeHandle *node, Transaction *tran
     // 4. 如果node结点和兄弟结点的键值对数量之和，能够支撑两个B+树结点（即node.size+neighbor.size >=
     // NodeMinSize*2)，则只需要重新分配键值对（调用Redistribute函数）
     // 5. 如果不满足上述条件，则需要合并两个结点，将右边的结点合并到左边的结点（调用Coalesce函数）
-
+    if(node->IsRootPage())
+    {
+        //如果是根节点,则需要调用AdjustRoot()函数来进行处理
+        return AdjustRoot(node);
+    }
+    else
+    {
+        //获取node结点的父亲结点
+        IxNodeHandle *parent = FetchNode(node->GetParentPageNo());
+        //寻找node结点的兄弟结点
+        // IxNodeHandle *neighbor = FetchNode(parent->GetNeighborPageNo(node->GetPageId()));
+        //如果node结点和兄弟结点的键值对数量之和，能够支撑两个B+树结点
+        // if(node->page_hdr->num_key + neighbor->page_hdr->num_key >= node->GetMaxSize())
+        // {
+            //则只需要重新分配键值对
+            // Redistribute(node,neighbor,parent,transaction);
+        // }
+        // else
+        // {
+            //否则需要合并两个结点
+            // Coalesce(node,neighbor,parent,transaction);
+        // }
+        buffer_pool_manager_->UnpinPage(parent->GetPageId(),true);
+        return false;
+    }
     return false;
 }
 
