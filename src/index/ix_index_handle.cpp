@@ -73,7 +73,7 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // 2. 在该叶子节点中插入键值对
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
     // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
-    // std::scoped_lock lock{root_latch_};
+    std::scoped_lock lock{root_latch_};
     IxNodeHandle *leaf = FindLeafPage(key, Operation::INSERT, transaction);
     int before_insert = leaf->page_hdr->num_key;
     int after_insert = leaf->Insert(key, value);
