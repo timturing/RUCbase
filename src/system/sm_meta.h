@@ -40,9 +40,12 @@ struct TabMeta {
      * @return false
      */
     bool is_col(const std::string &col_name) const {
-        // lab3 task1 Todo
+        for (const auto &col : cols) {
+            if (col.name == col_name) {
+                return true;
+            }
+        }
         return false;
-        // lab3 task1 Todo End
     }
     /**
      * @brief 根据列名获得列元数据ColMeta
@@ -51,10 +54,13 @@ struct TabMeta {
      * @return std::vector<ColMeta>::iterator
      */
     std::vector<ColMeta>::iterator get_col(const std::string &col_name) {
-        // lab3 task1 Todo
         std::vector<ColMeta>::iterator it;
+        for (it = cols.begin(); it != cols.end(); it++) {
+            if (it->name == col_name) {
+                return it;
+            }
+        }
         return it;
-        // lab3 task1 Todo End
     }
 
     friend std::ostream &operator<<(std::ostream &os, const TabMeta &tab) {
@@ -91,7 +97,7 @@ class DbMeta {
     bool is_table(const std::string &tab_name) const { return tabs_.find(tab_name) != tabs_.end(); }
 
     TabMeta &get_table(const std::string &tab_name) {
-        auto pos = tabs_.find(tab_name);
+        auto pos = tabs_.find(tab_name);//?这里已经写了，但是delete_mark是啥?
         if (pos == tabs_.end()) {
             throw TableNotFoundError(tab_name);
         }
