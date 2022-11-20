@@ -28,6 +28,29 @@ class IndexScanExecutor : public AbstractExecutor {
         // lab3 task2 todo
         // 参考seqscan作法,实现indexscan构造方法
         // lab3 task2 todo
+        //!这里是简单的copy了一下，加上了特有的index_no
+        index_no=index_no;
+        sm_manager_ = sm_manager;
+        tab_name_ = std::move(tab_name);
+        conds_ = std::move(conds);
+        TabMeta &tab = sm_manager_->db_.get_table(tab_name_);
+        fh_ = sm_manager_->fhs_.at(tab_name_).get();
+        cols_ = tab.cols;
+        len_ = cols_.back().offset + cols_.back().len;
+        context_ = context;
+        std::map<CompOp, CompOp> swap_op = {
+            {OP_EQ, OP_EQ}, {OP_NE, OP_NE}, {OP_LT, OP_GT}, {OP_GT, OP_LT}, {OP_LE, OP_GE}, {OP_GE, OP_LE},
+        };
+        for (auto &cond : conds_) {
+            if (cond.lhs_col.tab_name != tab_name_) {
+                // lhs is on other table, now rhs must be on this table
+                assert(!cond.is_rhs_val && cond.rhs_col.tab_name == tab_name_);
+                // swap lhs and rhs
+                std::swap(cond.lhs_col, cond.rhs_col);
+                cond.op = swap_op.at(cond.op);
+            }
+        }
+        fed_conds_ = conds_;
     }
 
     std::string getType() { return "indexScan"; }
@@ -46,6 +69,21 @@ class IndexScanExecutor : public AbstractExecutor {
                 if (cond.op == OP_EQ) {
                     lower = ih->lower_bound(rhs_key);
                     upper = ih->upper_bound(rhs_key);
+                }
+                else if (cond.op == OP_LT) {
+                    upper = ih->lower_bound(rhs_key);
+                }
+                else if (cond.op == OP_LE) {
+                    upper = ih->upper_bound(rhs_key);
+                }
+                else if (cond.op == OP_GT) {
+                    lower = ih->upper_bound(rhs_key);
+                }
+                else if (cond.op == OP_GE) {
+                    lower = ih->lower_bound(rhs_key);
+                }
+                else{
+                    throw InternalError("Unexpected op type");
                 }
 
                 // lab3 task2 todo
@@ -87,6 +125,17 @@ class IndexScanExecutor : public AbstractExecutor {
         // lab3 task2 todo
         // 扫描到下一个满足条件的记录,赋rid_,中止循环
         // lab3 task2 todo end
+        while (!scan_->is_end()) {
+            scan_->next();
+            if (scan_->is_end()) {
+                break;
+            }
+            rid_ = scan_->rid();
+            auto rec = fh_->get_record(rid_, context_);
+            if (eval_conds(cols_, fed_conds_, rec.get())) {
+                break;
+            }
+        }
     }
 
     bool is_end() const override { return scan_->is_end(); }
@@ -106,6 +155,14 @@ class IndexScanExecutor : public AbstractExecutor {
             // lab3 task2 todo
             // 参考seqscan
             // lab3 task2 todo end
+            if (cond.is_rhs_val) {
+                continue;
+            }
+            auto it = feed_dict.find(cond.rhs_col);
+            if (it != feed_dict.end()) {
+                cond.rhs_val = it->second;
+                cond.is_rhs_val = true;
+            }
         }
         check_runtime_conds();
     }
