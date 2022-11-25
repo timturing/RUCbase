@@ -37,6 +37,7 @@ class UpdateExecutor : public AbstractExecutor {
                 // lab3 task3 Todo
                 // 获取需要的索引句柄,填充vector ihs
                 // lab3 task3 Todo end
+                ihs[lhs_col_idx] = sm_manager_->ihs_.at(tab_name_).get();
             }
         }
         // Update each rid from record file and index file
@@ -45,7 +46,18 @@ class UpdateExecutor : public AbstractExecutor {
             // lab3 task3 Todo
             // Remove old entry from index
             // lab3 task3 Todo end
-
+            // Remove old entry from index
+            //TODO 这里也没有???
+            txn_id_t txn_id;
+            IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE;
+            Transaction temp(txn_id, isolation_level);
+            for (int i = 0; i < tab_.cols.size(); i++) {
+                if (tab_.cols[i].index) {
+                    auto ifh = sm_manager_->ihs_.at(tab_name_).get();//index file handle
+                    ifh->delete_entry(rec->data + tab_.cols[i].offset,&temp);
+                }
+            }
+            
             // record a update operation into the transaction
             RmRecord update_record{rec->size};
             memcpy(update_record.data, rec->data, rec->size);
@@ -53,10 +65,36 @@ class UpdateExecutor : public AbstractExecutor {
             // lab3 task3 Todo
             // Update record in record file
             // lab3 task3 Todo end
-
+            // Update record in record file
+            for (auto &set_clause : set_clauses_) {
+                auto lhs_col = tab_.get_col(set_clause.lhs.col_name);
+                size_t lhs_col_idx = lhs_col - tab_.cols.begin();
+                // lab3 task3 Todo
+                // Update record in record file
+                // lab3 task3 Todo end
+                // Update record in record file
+                // printf("In update,update: %s\n", set_clause.rhs.raw->data);
+                // printf("ori:%s\n", rec->data + lhs_col->offset);
+                // printf("offset:%d\n", lhs_col->offset);
+                // printf("len:%d\n", lhs_col->len);
+                memcpy(rec->data + lhs_col->offset, set_clause.rhs.raw->data, lhs_col->len);
+                // printf("after:%d\n", *(rec->data));
+                // printf("after:%s\n", rec->data + lhs_col->offset);
+            }
+            fh_->update_record(rid, rec->data, context_);
+            
             // lab3 task3 Todo
             // Insert new entry into index
             // lab3 task3 Todo end
+            // Insert new entry into index
+            for (int i = 0; i < tab_.cols.size(); i++) {
+                if (tab_.cols[i].index) {
+                    auto ifh = sm_manager_->ihs_.at(tab_name_).get();//index file handle
+                    ifh->insert_entry(rec->data + tab_.cols[i].offset,rid,&temp);
+                }
+            }
+
+            // return rec;
         }
         return nullptr;
     }

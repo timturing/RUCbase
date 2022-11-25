@@ -98,6 +98,8 @@ void QlManager::insert_into(const std::string &tab_name, std::vector<Value> valu
     // make InsertExecutor
     // call InsertExecutor.Next()
     // lab3 task3 Todo end
+    InsertExecutor executor(sm_manager_,tab_name,values,context);
+    executor.Next();
 }
 
 void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> conds, Context *context) {
@@ -111,7 +113,13 @@ void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> 
     // 根据get_indexNo判断conds上有无索引
     // 创建合适的scan executor(有索引优先用索引)
     // lab3 task3 Todo end
-
+    int index_no = get_indexNo(tab_name,conds);
+    if(index_no == -1){
+        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_,tab_name,conds,context);
+    }else{
+        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_,tab_name,conds,index_no,context);
+    }
+    
     for (scanExecutor->beginTuple(); !scanExecutor->is_end(); scanExecutor->nextTuple()) {
         rids.push_back(scanExecutor->rid());
     }
@@ -120,6 +128,8 @@ void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> 
     // make deleteExecutor
     // call deleteExecutor.Next()
     // lab3 task3 Todo end
+    DeleteExecutor executor(sm_manager_,tab_name,conds,rids,context);
+    executor.Next();
 }
 
 void QlManager::update_set(const std::string &tab_name, std::vector<SetClause> set_clauses,
@@ -145,6 +155,18 @@ void QlManager::update_set(const std::string &tab_name, std::vector<SetClause> s
     // make updateExecutor
     // call updateExecutor.Next()
     // lab3 task3 Todo end
+    std::unique_ptr<AbstractExecutor> scanExecutor;
+    int index_no = get_indexNo(tab_name,conds);
+    if(index_no == -1){
+        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_,tab_name,conds,context);
+    }else{
+        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_,tab_name,conds,index_no,context);
+    }
+    for (scanExecutor->beginTuple(); !scanExecutor->is_end(); scanExecutor->nextTuple()) {
+        rids.push_back(scanExecutor->rid());
+    }
+    UpdateExecutor executor(sm_manager_,tab_name,set_clauses,conds,rids,context);
+    executor.Next();
 }
 
 /**

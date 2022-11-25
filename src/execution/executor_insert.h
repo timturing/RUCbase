@@ -34,6 +34,34 @@ class InsertExecutor : public AbstractExecutor {
         // Insert into record file
         // Insert into index
         // lab3 task3 Todo end
+
+        // TODO 这里的transation为啥没有???
+        txn_id_t txn_id;
+        IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE;
+        Transaction temp(txn_id, isolation_level);
+        // Make record buffer
+        std::unique_ptr<RmRecord> record{new RmRecord(fh_->get_file_hdr().record_size)};
+
+        // Insert into record file
+        fh_->insert_record(rid_, record->data);
+
+        // Insert into index
+        for (int i = 0; i < tab_.cols.size(); i++) {
+            printf("col %d\n", i);
+            if (values_[i].type == TYPE_INT) {
+                printf("int %d\n", values_[i].raw->data);
+            } else if (values_[i].type == TYPE_FLOAT) {
+                printf("float %f\n", values_[i].raw->data);
+            } else if (values_[i].type == TYPE_STRING) {
+                printf("varchar %s\n", values_[i].raw->data);
+            }
+            // memcpy(record->data + tab_.cols[i].offset, values_[i].raw->data, values_[i].raw->size);
+            if (tab_.cols[i].index) {
+                auto ifh = sm_manager_->ihs_.at(tab_name_).get();  // index file handle
+                ifh->insert_entry(values_[i].raw->data, rid_, &temp);
+            }
+        }
+        printf("end");
         return nullptr;
     }
     Rid &rid() override { return rid_; }
