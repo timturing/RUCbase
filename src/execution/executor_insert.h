@@ -43,26 +43,26 @@ class InsertExecutor : public AbstractExecutor {
         std::unique_ptr<RmRecord> record{new RmRecord(fh_->get_file_hdr().record_size)};
 
         // Insert into record file
-        fh_->insert_record(rid_, record->data);
-
+        rid_ = fh_->insert_record(record->data,context_);
         // Insert into index
         for (int i = 0; i < tab_.cols.size(); i++) {
-            printf("col %d\n", i);
-            if (values_[i].type == TYPE_INT) {
-                printf("int %d\n", values_[i].raw->data);
-            } else if (values_[i].type == TYPE_FLOAT) {
-                printf("float %f\n", values_[i].raw->data);
-            } else if (values_[i].type == TYPE_STRING) {
-                printf("varchar %s\n", values_[i].raw->data);
-            }
             // memcpy(record->data + tab_.cols[i].offset, values_[i].raw->data, values_[i].raw->size);
+            auto val = values_[i];
+            if (val.type == TYPE_INT) {
+                memcpy(record->data + tab_.cols[i].offset, &val.int_val, sizeof(int));
+            } else if (val.type == TYPE_FLOAT) {
+                memcpy(record->data + tab_.cols[i].offset, &val.float_val, sizeof(float));
+            } else if (val.type == TYPE_STRING) {
+                memcpy(record->data + tab_.cols[i].offset, val.str_val.c_str(), val.str_val.size());
+            } 
             if (tab_.cols[i].index) {
                 auto ifh = sm_manager_->ihs_.at(tab_name_).get();  // index file handle
-                ifh->insert_entry(values_[i].raw->data, rid_, &temp);
+                ifh->insert_entry(record->data + tab_.cols[i].offset, rid_, &temp);
             }
         }
-        printf("end");
-        return nullptr;
+        fh_->update_record(rid_, record->data,context_);
+        // printf("end\n");
+        return record;
     }
     Rid &rid() override { return rid_; }
 };

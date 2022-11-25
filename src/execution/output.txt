@@ -1,72 +1,150 @@
->> select * from student;
-rucbase> select * from student;
+>> create table student (id int, name char(32), major char(32));
+rucbase> create table student (id int, name char(32), major char(32));
+
+------------------------------
+>> create index student (id);
+rucbase> create index student (id);
+
+------------------------------
+>> create table grade (course char(32), student_id int, score float);
+rucbase> create table grade (course char(32), student_id int, score float);
+
+------------------------------
+>> create index grade (student_id);
+rucbase> create index grade (student_id);
+
+------------------------------
+>> show tables;
+rucbase> show tables;
++------------------+
+|           Tables |
++------------------+
+|            grade |
+|          student |
++------------------+
+
+------------------------------
+>> desc student;
+rucbase> desc student;
++------------------+------------------+------------------+
+|            Field |             Type |            Index |
++------------------+------------------+------------------+
+|               id |              INT |              YES |
+|             name |           STRING |               NO |
+|            major |           STRING |               NO |
++------------------+------------------+------------------+
+
+------------------------------
+>> insert into student values (1, 'Tom', 'Computer Science');
+rucbase> insert into student values (1, 'Tom', 'Computer Science');
+------------------------------
+>> insert into student values (2, 'Jerry', 'Computer Science');
+rucbase> insert into student values (2, 'Jerry', 'Computer Science');
+------------------------------
+>> insert into student values (3, 'Jack', 'Electrical Engineering');
+rucbase> insert into student values (3, 'Jack', 'Electrical Engineering');
+------------------------------
+>> select * from student where id>=1;
+rucbase> select * from student where id>=1;
 +------------------+------------------+------------------+
 |               id |             name |            major |
 +------------------+------------------+------------------+
-|                1 |              Tom | Computer Science |
-|                2 |            Jerry | Computer Science |
-|                3 |             Jack | Electrical En... |
 +------------------+------------------+------------------+
-Total record(s): 3
+Total record(s): 0
 
 ------------------------------
 >> update student set major = 'Electrical Engineering' where id = 2;
 rucbase> update student set major = 'Electrical Engineering' where id = 2;
 
 ------------------------------
->> select * from student;
-rucbase> select * from student;
+>> select * from student where id>=1;
+rucbase> select * from student where id>=1;
 +------------------+------------------+------------------+
 |               id |             name |            major |
 +------------------+------------------+------------------+
-|                1 |              Tom | Computer Science |
-|                2 |            Jerry | Electrical En... |
-|                3 |             Jack | Electrical En... |
 +------------------+------------------+------------------+
-Total record(s): 3
+Total record(s): 0
 
 ------------------------------
 >> delete from student where name = 'Jack';
 rucbase> delete from student where name = 'Jack';
-
 ------------------------------
->> select * from student;
-rucbase> select * from student;
+>> select * from student where id>=1;
+rucbase> select * from student where id>=1;
 +------------------+------------------+------------------+
 |               id |             name |            major |
 +------------------+------------------+------------------+
-|                1 |              Tom | Computer Science |
-|                2 |            Jerry | Electrical En... |
 +------------------+------------------+------------------+
-Total record(s): 2
+Total record(s): 0
 
 ------------------------------
->> update student set major = 'Computer Science' where id = 2;
-rucbase> update student set major = 'Computer Science' where id = 2;
+>> insert into grade values ('Data Structure', 1, 90.0);
+rucbase> insert into grade values ('Data Structure', 1, 90.0);
+------------------------------
+>> insert into grade values ('Data Structure', 2, 95.0);
+rucbase> insert into grade values ('Data Structure', 2, 95.0);
+------------------------------
+>> insert into grade values ('Calculus', 2, 82.0);
+rucbase> insert into grade values ('Calculus', 2, 82.0);
+------------------------------
+>> insert into grade values ('Calculus', 1, 88.5);
+rucbase> insert into grade values ('Calculus', 1, 88.5);
+------------------------------
+>> select * from student, grade;
+rucbase> select * from student, grade;
++------------------+------------------+------------------+------------------+------------------+------------------+
+|               id |             name |            major |           course |       student_id |            score |
++------------------+------------------+------------------+------------------+------------------+------------------+
++------------------+------------------+------------------+------------------+------------------+------------------+
+Total record(s): 0
 
 ------------------------------
->> select * from student;
-rucbase> select * from student;
-+------------------+------------------+------------------+
-|               id |             name |            major |
-+------------------+------------------+------------------+
-|                1 |              Tom | Computer Science |
-|                2 |            Jerry | Computer Science |
-+------------------+------------------+------------------+
-Total record(s): 2
+>> select id, name, major, course, score from student, grade where student.id = grade.student_id;
+rucbase> select id, name, major, course, score from student, grade where student.id = grade.student_id;
++------------------+------------------+------------------+------------------+------------------+
+|               id |             name |            major |           course |            score |
++------------------+------------------+------------------+------------------+------------------+
++------------------+------------------+------------------+------------------+------------------+
+Total record(s): 0
 
 ------------------------------
->> insert into student values (3, 'Jack', 'Electrical Engineering');
-rucbase> insert into student values (3, 'Jack', 'Electrical Engineering');
+>> select id, name, major, course, score from student join grade where student.id = grade.student_id;
+rucbase> select id, name, major, course, score from student join grade where student.id = grade.student_id;
++------------------+------------------+------------------+------------------+------------------+
+|               id |             name |            major |           course |            score |
++------------------+------------------+------------------+------------------+------------------+
++------------------+------------------+------------------+------------------+------------------+
+Total record(s): 0
+
 ------------------------------
->> select * from student;
-rucbase> select * from student;
+>> drop index student (id);
+rucbase> drop index student (id);
+
+------------------------------
+>> desc student;
+rucbase> desc student;
 +------------------+------------------+------------------+
-|               id |             name |            major |
+|            Field |             Type |            Index |
 +------------------+------------------+------------------+
-|                1 |              Tom | Computer Science |
-|                2 |            Jerry | Computer Science |
+|               id |              INT |               NO |
+|             name |           STRING |               NO |
+|            major |           STRING |               NO |
 +------------------+------------------+------------------+
-Total record(s): 2
+
+------------------------------
+>> drop table student;
+rucbase> drop table student;
+
+------------------------------
+>> drop table grade;
+rucbase> drop table grade;
+
+------------------------------
+>> show tables;
+rucbase> show tables;
++------------------+
+|           Tables |
++------------------+
++------------------+
 
 ------------------------------

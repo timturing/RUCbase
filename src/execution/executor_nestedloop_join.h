@@ -56,12 +56,6 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
             feed_right();
             right_->beginTuple();
             // lab3 task2 Todo end
-            left_->nextTuple();
-            if (left_->is_end()) {
-                return;
-            }
-            feed_right();
-            right_->beginTuple();
         }
     }
 
