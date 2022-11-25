@@ -65,7 +65,9 @@ class SeqScanExecutor : public AbstractExecutor {
             // 利用eval_conds判断是否当前记录(rec.get())满足谓词条件
             // 满足则中止循环
             // lab3 task2 todo end
-
+            if (eval_conds(cols_, fed_conds_, rec.get())) {
+                break;
+            }
             scan_->next();  // 找下一个有record的位置
         }
     }
@@ -79,6 +81,11 @@ class SeqScanExecutor : public AbstractExecutor {
             // 利用eval_conds判断是否当前记录(rec.get())满足谓词条件
             // 满足则中止循环
             // lab3 task2 todo End
+            rid_ = scan_->rid();
+            auto rec = fh_->get_record(rid_, context_);
+            if (eval_conds(cols_, fed_conds_, rec.get())) {
+                break;
+            }
         }
     }
 
@@ -92,6 +99,12 @@ class SeqScanExecutor : public AbstractExecutor {
         // lab3 task2 todo
         // 利用fh_得到记录record
         // lab3 task2 todo end
+        if (is_end()) {
+            return nullptr;
+        }
+        auto rec = fh_->get_record(rid_, context_);
+        // nextTuple();
+        return rec;
     }
 
     void feed(const std::map<TabCol, Value> &feed_dict) override {

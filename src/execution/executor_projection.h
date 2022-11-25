@@ -38,7 +38,10 @@ class ProjectionExecutor : public AbstractExecutor {
     void beginTuple() override { prev_->beginTuple(); }
 
     void nextTuple() override {
-        assert(!prev_->is_end());
+        if(prev_->is_end())
+        {
+            return;
+        }
         prev_->nextTuple();
     }
 

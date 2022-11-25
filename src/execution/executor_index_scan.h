@@ -145,8 +145,12 @@ class IndexScanExecutor : public AbstractExecutor {
     const std::vector<ColMeta> &cols() const override { return cols_; }
 
     std::unique_ptr<RmRecord> Next() override {
-        assert(!is_end());
-        return fh_->get_record(rid_, context_);
+        if (is_end()) {
+            return nullptr;
+        }
+        auto rec = fh_->get_record(rid_, context_);
+        nextTuple();
+        return rec;
     }
 
     void feed(const std::map<TabCol, Value> &feed_dict) override {

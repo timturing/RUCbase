@@ -205,6 +205,15 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
         // 根据get_indexNo判断conds上有无索引
         // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
         // lab3 task2 Todo end
+        int idx = get_indexNo(tab_names[i], curr_conds);
+        if (idx != -1) {
+            // printf("index_no: %d\n", idx);
+            table_scan_executors[i] =
+                std::make_unique<IndexScanExecutor>(sm_manager_, tab_names[i], curr_conds, idx, context);
+        } else {
+            // printf("no index\n");
+            table_scan_executors[i] = std::make_unique<SeqScanExecutor>(sm_manager_, tab_names[i], curr_conds, context);
+        }
     }
     assert(conds.empty());
 
@@ -215,6 +224,12 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
     // 逆序遍历tab_nodes为左节点, 现query_plan为右节点,生成joinNode作为新query_plan 根节点
     // 生成query_plan tree完毕后, 根节点转换成投影算子
     // lab3 task2 Todo End
+    for (int i = tab_names.size() - 2; i >= 0; i--) {
+        std::unique_ptr<AbstractExecutor> left = std::move(table_scan_executors[i]);
+        std::unique_ptr<AbstractExecutor> right = std::move(executorTreeRoot);
+        executorTreeRoot = std::make_unique<NestedLoopJoinExecutor>(std::move(left), std::move(right));
+    }
+    executorTreeRoot = std::make_unique<ProjectionExecutor>(std::move(executorTreeRoot), sel_cols);
 
     // Column titles
     std::vector<std::string> captions;

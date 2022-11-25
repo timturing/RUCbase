@@ -1,63 +1,70 @@
->> show tables;
-rucbase> show tables;
-+------------------+
-|           Tables |
-+------------------+
-+------------------+
-
-------------------------------
->> create table tb(s int, a int, b float, c char(16));
-rucbase> create table tb(s int, a int, b float, c char(16));
-
-------------------------------
->> create table tb2(x int, y float, z char(16), s int);
-rucbase> create table tb2(x int, y float, z char(16), s int);
-
-------------------------------
->> show tables;
-rucbase> show tables;
-+------------------+
-|           Tables |
-+------------------+
-|               tb |
-|              tb2 |
-+------------------+
-
-------------------------------
->> desc tb;
-rucbase> desc tb;
+>> select * from student;
+rucbase> select * from student;
 +------------------+------------------+------------------+
-|            Field |             Type |            Index |
+|               id |             name |            major |
 +------------------+------------------+------------------+
-|                s |              INT |               NO |
-|                a |              INT |               NO |
-|                b |            FLOAT |               NO |
-|                c |           STRING |               NO |
+|                1 |              Tom | Computer Science |
+|                2 |            Jerry | Computer Science |
+|                3 |             Jack | Electrical En... |
 +------------------+------------------+------------------+
+Total record(s): 3
 
 ------------------------------
->> drop table tb;
-rucbase> drop table tb;
+>> select * from grade;
+rucbase> select * from grade;
++------------------+------------------+------------------+
+|           course |       student_id |            score |
++------------------+------------------+------------------+
+|   Data Structure |                1 |        90.000000 |
+|   Data Structure |                2 |        95.000000 |
+|         Calculus |                2 |        82.000000 |
+|         Calculus |                1 |        88.500000 |
++------------------+------------------+------------------+
+Total record(s): 4
 
 ------------------------------
->> show tables;
-rucbase> show tables;
-+------------------+
-|           Tables |
-+------------------+
-|              tb2 |
-+------------------+
+>> select * from student where id>=2;
+rucbase> select * from student where id>=2;
++------------------+------------------+------------------+
+|               id |             name |            major |
++------------------+------------------+------------------+
+|                2 |            Jerry | Computer Science |
+|                3 |             Jack | Electrical En... |
++------------------+------------------+------------------+
+Total record(s): 2
 
 ------------------------------
->> drop table tb2;
-rucbase> drop table tb2;
+>> select * from student, grade;
+rucbase> select * from student, grade;
++------------------+------------------+------------------+------------------+------------------+------------------+
+|               id |             name |            major |           course |       student_id |            score |
++------------------+------------------+------------------+------------------+------------------+------------------+
+|                1 |              Tom | Computer Science |   Data Structure |                1 |        90.000000 |
+|                1 |              Tom | Computer Science |   Data Structure |                2 |        95.000000 |
+|                1 |              Tom | Computer Science |         Calculus |                2 |        82.000000 |
+|                1 |              Tom | Computer Science |         Calculus |                1 |        88.500000 |
+|                2 |            Jerry | Computer Science |   Data Structure |                1 |        90.000000 |
+|                2 |            Jerry | Computer Science |   Data Structure |                2 |        95.000000 |
+|                2 |            Jerry | Computer Science |         Calculus |                2 |        82.000000 |
+|                2 |            Jerry | Computer Science |         Calculus |                1 |        88.500000 |
+|                3 |             Jack | Electrical En... |   Data Structure |                1 |        90.000000 |
+|                3 |             Jack | Electrical En... |   Data Structure |                2 |        95.000000 |
+|                3 |             Jack | Electrical En... |         Calculus |                2 |        82.000000 |
+|                3 |             Jack | Electrical En... |         Calculus |                1 |        88.500000 |
++------------------+------------------+------------------+------------------+------------------+------------------+
+Total record(s): 12
 
 ------------------------------
->> show tables;
-rucbase> show tables;
-+------------------+
-|           Tables |
-+------------------+
-+------------------+
+>> select id, name, major, course from student, grade where student.id = grade.student_id;
+rucbase> select id, name, major, course from student, grade where student.id = grade.student_id;
++------------------+------------------+------------------+------------------+
+|               id |             name |            major |           course |
++------------------+------------------+------------------+------------------+
+|                1 |              Tom | Computer Science |   Data Structure |
+|                1 |              Tom | Computer Science |         Calculus |
+|                2 |            Jerry | Computer Science |   Data Structure |
+|                2 |            Jerry | Computer Science |         Calculus |
++------------------+------------------+------------------+------------------+
+Total record(s): 4
 
 ------------------------------
