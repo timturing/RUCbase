@@ -72,7 +72,6 @@ class SeqScanExecutor : public AbstractExecutor {
             } catch (RecordNotFoundError &e) {
                 std::cerr << e.what() << std::endl;
             }
-
             scan_->next();  // 找下一个有record的位置
         }
     }

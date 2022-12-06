@@ -29,7 +29,7 @@ class IndexScanExecutor : public AbstractExecutor {
         // 参考seqscan作法,实现indexscan构造方法
         // lab3 task2 todo
         //!这里是简单的copy了一下，加上了特有的index_no_
-        index_no_=index_no;
+        index_no_ = index_no;
         rid_ = {-1, -1};
         scan_ = nullptr;
         sm_manager_ = sm_manager;
@@ -71,20 +71,15 @@ class IndexScanExecutor : public AbstractExecutor {
                 if (cond.op == OP_EQ) {
                     lower = ih->lower_bound(rhs_key);
                     upper = ih->upper_bound(rhs_key);
-                }
-                else if (cond.op == OP_LT) {
+                } else if (cond.op == OP_LT) {
                     upper = ih->lower_bound(rhs_key);
-                }
-                else if (cond.op == OP_LE) {
+                } else if (cond.op == OP_LE) {
                     upper = ih->upper_bound(rhs_key);
-                }
-                else if (cond.op == OP_GT) {
+                } else if (cond.op == OP_GT) {
                     lower = ih->upper_bound(rhs_key);
-                }
-                else if (cond.op == OP_GE) {
+                } else if (cond.op == OP_GE) {
                     lower = ih->lower_bound(rhs_key);
-                }
-                else{
+                } else {
                     throw InternalError("Unexpected op type");
                 }
 
@@ -113,9 +108,13 @@ class IndexScanExecutor : public AbstractExecutor {
         // Get the first record
         while (!scan_->is_end()) {
             rid_ = scan_->rid();
-            auto rec = fh_->get_record(rid_, context_);
-            if (eval_conds(cols_, fed_conds_, rec.get())) {
-                break;
+            try {
+                auto rec = fh_->get_record(rid_, context_);
+                if (eval_conds(cols_, fed_conds_, rec.get())) {
+                    break;
+                }
+            } catch (RecordNotFoundError &e) {
+                std::cerr << e.what() << std::endl;
             }
             scan_->next();
         }
