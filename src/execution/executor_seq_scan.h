@@ -67,8 +67,8 @@ class SeqScanExecutor : public AbstractExecutor {
                 // 满足则中止循环
                 // lab3 task2 todo end
                 if (eval_conds(cols_, fed_conds_, rec.get())) {
-                break;
-            }
+                    break;
+                }
             } catch (RecordNotFoundError &e) {
                 std::cerr << e.what() << std::endl;
             }
@@ -108,7 +108,6 @@ class SeqScanExecutor : public AbstractExecutor {
             return nullptr;
         }
         auto rec = fh_->get_record(rid_, context_);
-        // nextTuple();
         return rec;
     }
 

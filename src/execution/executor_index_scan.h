@@ -28,8 +28,10 @@ class IndexScanExecutor : public AbstractExecutor {
         // lab3 task2 todo
         // 参考seqscan作法,实现indexscan构造方法
         // lab3 task2 todo
-        //!这里是简单的copy了一下，加上了特有的index_no
-        index_no=index_no;
+        //!这里是简单的copy了一下，加上了特有的index_no_
+        index_no_=index_no;
+        rid_ = {-1, -1};
+        scan_ = nullptr;
         sm_manager_ = sm_manager;
         tab_name_ = std::move(tab_name);
         conds_ = std::move(conds);
@@ -149,7 +151,6 @@ class IndexScanExecutor : public AbstractExecutor {
             return nullptr;
         }
         auto rec = fh_->get_record(rid_, context_);
-        nextTuple();
         return rec;
     }
 

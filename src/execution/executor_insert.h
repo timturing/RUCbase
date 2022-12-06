@@ -35,34 +35,30 @@ class InsertExecutor : public AbstractExecutor {
         // Insert into index
         // lab3 task3 Todo end
 
-        // TODO 这里的transation为啥没有???
-        txn_id_t txn_id;
-        IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE;
-        Transaction temp(txn_id, isolation_level);
+        
         // Make record buffer
-        std::unique_ptr<RmRecord> record{new RmRecord(fh_->get_file_hdr().record_size)};
+        RmRecord rec(fh_->get_file_hdr().record_size);
 
+        for (size_t i = 0; i < values_.size(); i++) {
+            auto &col = tab_.cols[i];
+            auto &val = values_[i];
+            if (col.type != val.type) {
+                throw IncompatibleTypeError(coltype2str(col.type), coltype2str(val.type));
+            }
+            val.init_raw(col.len);
+            memcpy(rec.data + col.offset, val.raw->data, col.len);
+        }
         // Insert into record file
-        rid_ = fh_->insert_record(record->data,context_);
+        rid_ = fh_->insert_record(rec.data, context_);
         // Insert into index
-        for (int i = 0; i < tab_.cols.size(); i++) {
-            // memcpy(record->data + tab_.cols[i].offset, values_[i].raw->data, values_[i].raw->size);
-            auto val = values_[i];
-            if (val.type == TYPE_INT) {
-                memcpy(record->data + tab_.cols[i].offset, &val.int_val, sizeof(int));
-            } else if (val.type == TYPE_FLOAT) {
-                memcpy(record->data + tab_.cols[i].offset, &val.float_val, sizeof(float));
-            } else if (val.type == TYPE_STRING) {
-                memcpy(record->data + tab_.cols[i].offset, val.str_val.c_str(), val.str_val.size());
-            } 
-            if (tab_.cols[i].index) {
-                auto ifh = sm_manager_->ihs_.at(tab_name_).get();  // index file handle
-                ifh->insert_entry(record->data + tab_.cols[i].offset, rid_, &temp);
+        for (size_t i = 0; i < tab_.cols.size(); i++) {
+            auto &col = tab_.cols[i];
+            if (col.index) {
+                auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();
+                ih->insert_entry(rec.data + col.offset, rid_,context_->txn_);
             }
         }
-        fh_->update_record(rid_, record->data,context_);
-        // printf("end\n");
-        return record;
+        return std::make_unique<RmRecord>(rec);
     }
     Rid &rid() override { return rid_; }
 };

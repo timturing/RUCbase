@@ -227,11 +227,10 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
         // 根据get_indexNo判断conds上有无索引
         // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
         // lab3 task2 Todo end
-        int idx = get_indexNo(tab_names[i], curr_conds);
-        if (idx != -1) {
-            // printf("index_no: %d\n", idx);
+        if (index_no != -1) {
+            // printf("index_no: %d\n", index_no);
             table_scan_executors[i] =
-                std::make_unique<IndexScanExecutor>(sm_manager_, tab_names[i], curr_conds, idx, context);
+                std::make_unique<IndexScanExecutor>(sm_manager_, tab_names[i], curr_conds, index_no, context);
         } else {
             // printf("no index\n");
             table_scan_executors[i] = std::make_unique<SeqScanExecutor>(sm_manager_, tab_names[i], curr_conds, context);

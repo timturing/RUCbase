@@ -33,8 +33,9 @@ class DeleteExecutor : public AbstractExecutor {
                 // lab3 task3 Todo
                 // 获取需要的索引句柄,填充vector ihs
                 // lab3 task3 Todo end
-                ihs[col_i] = sm_manager_->ihs_.at(tab_name_).get();
+                ihs[col_i] = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, col_i)).get();
             }
+            else ihs[col_i]=nullptr;
         }
         // Delete each rid from record file and index file
         for (auto &rid : rids_) {
@@ -43,23 +44,20 @@ class DeleteExecutor : public AbstractExecutor {
             // Delete from index file
             // Delete from record file
             // lab3 task3 Todo end
-            // TODO 这里也没有???
-            txn_id_t txn_id;
-            IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE;
-            Transaction temp(txn_id, isolation_level);
+            
             // Delete from index file
             for (int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
-                    auto ifh = sm_manager_->ihs_.at(tab_name_).get();//index file handle
-                    ifh->delete_entry(rec->data + tab_.cols[i].offset,&temp);
+                    auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();;//index file handle
+                    ifh->delete_entry(rec->data + tab_.cols[i].offset,context_->txn_);
                 }
             }
             // Delete from record file
             fh_->delete_record(rid, context_);
 
             // record a delete operation into the transaction
-            RmRecord delete_record{rec->size};
-            memcpy(delete_record.data, rec->data, rec->size);
+            // RmRecord delete_record{rec->size};
+            // memcpy(delete_record.data, rec->data, rec->size);
         }
         return nullptr;
     }

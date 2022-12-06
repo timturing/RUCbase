@@ -37,7 +37,7 @@ class UpdateExecutor : public AbstractExecutor {
                 // lab3 task3 Todo
                 // 获取需要的索引句柄,填充vector ihs
                 // lab3 task3 Todo end
-                ihs[lhs_col_idx] = sm_manager_->ihs_.at(tab_name_).get();
+                ihs[lhs_col_idx] = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, lhs_col_idx)).get();;
             }
         }
         // Update each rid from record file and index file
@@ -47,20 +47,17 @@ class UpdateExecutor : public AbstractExecutor {
             // Remove old entry from index
             // lab3 task3 Todo end
             // Remove old entry from index
-            //TODO 这里也没有???
-            txn_id_t txn_id;
-            IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE;
-            Transaction temp(txn_id, isolation_level);
+            
             for (int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
-                    auto ifh = sm_manager_->ihs_.at(tab_name_).get();//index file handle
-                    ifh->delete_entry(rec->data + tab_.cols[i].offset,&temp);
+                    auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();//index file handle
+                    ifh->delete_entry(rec->data + tab_.cols[i].offset,context_->txn_);
                 }
             }
             
             // record a update operation into the transaction
-            RmRecord update_record{rec->size};
-            memcpy(update_record.data, rec->data, rec->size);
+            // RmRecord update_record{rec->size};
+            // memcpy(update_record.data, rec->data, rec->size);
 
             // lab3 task3 Todo
             // Update record in record file
@@ -89,8 +86,8 @@ class UpdateExecutor : public AbstractExecutor {
             // Insert new entry into index
             for (int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
-                    auto ifh = sm_manager_->ihs_.at(tab_name_).get();//index file handle
-                    ifh->insert_entry(rec->data + tab_.cols[i].offset,rid,&temp);
+                    auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();//index file handle
+                    ifh->insert_entry(rec->data + tab_.cols[i].offset,rid,context_->txn_);
                 }
             }
 
