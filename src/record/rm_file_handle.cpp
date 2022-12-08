@@ -30,7 +30,7 @@ Rid RmFileHandle::insert_record(char *buf, Context *context) {
     // 注意考虑插入一条记录后页面已满的情况，需要更新file_hdr_.first_free_page_no
 
     RmPageHandle pagehandle = create_page_handle();
-    int i = Bitmap::first_bit(0,pagehandle.bitmap,file_hdr_.num_records_per_page);//BUG? 原来写的file_hdr_.bitmap_size
+    int i = Bitmap::first_bit(0,pagehandle.bitmap,file_hdr_.num_records_per_page);
     char *slot = pagehandle.get_slot(i);
     memcpy(slot, buf, file_hdr_.record_size);
     Bitmap::set(pagehandle.bitmap,i);

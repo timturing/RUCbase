@@ -47,6 +47,9 @@ class UpdateExecutor : public AbstractExecutor {
             // Remove old entry from index
             // lab3 task3 Todo end
             // Remove old entry from index
+            //before update
+            WriteRecord* wr= new WriteRecord(WType::UPDATE_TUPLE, tab_name_, rid,*rec);
+            context_->txn_->AppendWriteRecord(wr);  
             
             for (int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {

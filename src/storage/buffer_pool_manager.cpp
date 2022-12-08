@@ -6,7 +6,7 @@
  * @return true: 可替换帧查找成功 , false: 可替换帧查找失败
  */
 bool BufferPoolManager::FindVictimPage(frame_id_t *frame_id) {
-    // TODO:
+    // 
     //  1 使用BufferPoolManager::free_list_判断缓冲池是否已满需要淘汰页面
     //  1.1 未满获得frame
     //  1.2 已满使用lru_replacer中的方法选择淘汰页面
@@ -21,7 +21,7 @@ bool BufferPoolManager::FindVictimPage(frame_id_t *frame_id) {
  * @param new_frame_id 写回页新帧frame_id
  */
 void BufferPoolManager::UpdatePage(Page *page, PageId new_page_id, frame_id_t new_frame_id) {
-    // TODO:
+    
     //  1 如果是脏页，写回磁盘，并且把dirty置为false
     //  2 更新page table
     //  3 重置page的data，更新page id
@@ -35,7 +35,7 @@ void BufferPoolManager::UpdatePage(Page *page, PageId new_page_id, frame_id_t ne
  * @return the requested page
  */
 Page *BufferPoolManager::FetchPage(PageId page_id) {
-    // TODO:
+    
     //  0.     lock latch
     //  1.     Search the page table for the requested page (P).
     //  1.1    If P exists, pin it and return it immediately.
@@ -105,7 +105,7 @@ Page *BufferPoolManager::FetchPage(PageId page_id) {
  * @return false if the page pin count is <= 0 before this call, true otherwise
  */
 bool BufferPoolManager::UnpinPage(PageId page_id, bool is_dirty) {
-    // TODO:
+   
     //  0. lock latch
     //  1. try to search page_id page P in page_table_
     //  1.1 P在页表中不存在 return false
@@ -120,7 +120,7 @@ bool BufferPoolManager::UnpinPage(PageId page_id, bool is_dirty) {
             pages_[*frame_id].pin_count_--;
         }
         if (pages_[*frame_id].pin_count_ == 0) {
-            //BUG write
+            
             // disk_manager_->write_page(pages_[*frame_id].GetPageId().fd, pages_[*frame_id].GetPageId().page_no, pages_[*frame_id].GetData(), PAGE_SIZE);
             replacer_->Unpin(*frame_id);
             
@@ -139,7 +139,7 @@ bool BufferPoolManager::UnpinPage(PageId page_id, bool is_dirty) {
  * @return false if the page could not be found in the page table, true otherwise
  */
 bool BufferPoolManager::FlushPage(PageId page_id) {
-    // TODO:
+    
     //  0. lock latch
     //  1. 页表查找
     //  2. 存在时如何写回磁盘
@@ -163,7 +163,7 @@ bool BufferPoolManager::FlushPage(PageId page_id) {
  * @return nullptr if no new pages could be created, otherwise pointer to new page
  */
 Page *BufferPoolManager::NewPage(PageId *page_id) {
-    // TODO:
+    
     //  0.   lock latch
     //  1.   Make sure you call DiskManager::AllocatePage!
     //  2.   If all the pages in the buffer pool are pinned, return nullptr.
@@ -215,7 +215,7 @@ Page *BufferPoolManager::NewPage(PageId *page_id) {
  * @return false if the page exists but could not be deleted, true if the page didn't exist or deletion succeeded
  */
 bool BufferPoolManager::DeletePage(PageId page_id) {
-    // TODO:
+    
     //  0.   lock latch
     //  1.   Make sure you call DiskManager::DeallocatePage!
     //  2.   Search the page table for the requested page (P).

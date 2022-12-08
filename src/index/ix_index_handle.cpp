@@ -34,6 +34,8 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
         now = FetchNode(pageno);
     }
     //现在它是叶子节点了
+    // transaction->AddIntoPageSet(buffer_pool_manager_->FetchPage(now->GetPageId()));
+    //如果是删除操作,就要加锁
     return now;
 }
 
@@ -105,7 +107,6 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
  * @note 本函数执行完毕后，原node和new node都需要在函数外面进行unpin
  */
 IxNodeHandle *IxIndexHandle::Split(IxNodeHandle *node) {
-    // Todo:
     // 1. 将原结点的键值对平均分配，右半部分分裂为新的右兄弟结点
     //    需要初始化新节点的page_hdr内容
     // 2. 如果新的右兄弟结点是叶子结点，更新新旧节点的prev_leaf和next_leaf指针
@@ -113,7 +114,6 @@ IxNodeHandle *IxIndexHandle::Split(IxNodeHandle *node) {
     // 3. 如果新的右兄弟结点不是叶子结点，更新该结点的所有孩子结点的父节点信息(使用IxIndexHandle::maintain_child())
     int mid = node->page_hdr->num_key / 2;
     IxNodeHandle *new_node = CreateNode();
-    // TODO next_free_pageno?
     new_node->page_hdr->is_leaf = node->page_hdr->is_leaf;
     new_node->page_hdr->num_key = node->page_hdr->num_key - mid;
     new_node->page_hdr->parent = node->page_hdr->parent;
@@ -222,7 +222,6 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
     // 3. 如果删除成功且删除后该结点小于半满，需要调用CoalesceOrRedistribute来进行合并或重分配操作，并根据函数返回结果判断是否有结点需要删除
     // 4. 如果需要并发，并且需要删除叶子结点，则需要在事务的delete_page_set中添加删除结点的对应页面；记得处理并发的上锁
 
-    // TODO 注意要处理并发
     std::scoped_lock lock{root_latch_};
     //获取叶子结点
     IxNodeHandle *leaf = FindLeafPage(key, Operation::DELETE, transaction);
@@ -303,7 +302,7 @@ bool IxIndexHandle::CoalesceOrRedistribute(IxNodeHandle *node, Transaction *tran
         else
         {
             // 否则需要合并两个结点
-            return Coalesce(&neighbor,&node,&parent,index,transaction);//TODO是要return吗
+            return Coalesce(&neighbor,&node,&parent,index,transaction);
         }
         //? 这里是写maintain吗
         maintain_parent(node);
@@ -441,8 +440,8 @@ bool IxIndexHandle::Coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
         nextnode->page_hdr->prev_leaf = (*neighbor_node)->GetPageNo();
 
     }
-    release_node_handle(**node);//BUG
-    delete *node;//BUG 为啥没有析构函数?这样写可以吗?底层的page怎么办?
+    release_node_handle(**node);
+    delete *node;
     (*parent)->erase_pair(index);
     (*parent)->set_key(index-1,(*neighbor_node)->get_key(0));
     (*parent)->set_rid(index-1, Rid{(*neighbor_node)->GetPageNo(),-1});

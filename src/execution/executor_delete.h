@@ -56,8 +56,8 @@ class DeleteExecutor : public AbstractExecutor {
             fh_->delete_record(rid, context_);
 
             // record a delete operation into the transaction
-            // RmRecord delete_record{rec->size};
-            // memcpy(delete_record.data, rec->data, rec->size);
+            WriteRecord* wr= new WriteRecord(WType::DELETE_TUPLE, tab_name_,rid, *rec);
+            context_->txn_->AppendWriteRecord(wr);  
         }
         return nullptr;
     }
