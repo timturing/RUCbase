@@ -1,12 +1,12 @@
-    /* keywords are case insensitive */
+/* keywords are case insensitive */
 %option caseless
-    /* we don't need yywrap() function */
+/* we don't need yywrap() function */
 %option noyywrap
-    /* we don't need yyunput() function */
+/* we don't need yyunput() function */
 %option nounput
-    /* we don't need input() function */
+/* we don't need input() function */
 %option noinput
-    /* enable location */
+/* enable location */
 %option bison-bridge
 %option bison-locations
 
@@ -64,7 +64,11 @@ single_op ";"|"("|")"|","|"*"|"="|">"|"<"|"."
 "CREATE" { return CREATE; }
 "TABLE" { return TABLE; }
 "DROP" { return DROP; }
+"ORDER" { return ORDER; }
+"BY" { return BY; }
 "DESC" { return DESC; }
+"ASC" { return ASC; }
+"LIMIT" { return LIMIT; }
 "INSERT" { return INSERT; }
 "INTO" { return INTO; }
 "VALUES" { return VALUES; }

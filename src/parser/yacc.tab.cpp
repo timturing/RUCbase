@@ -66,7 +66,7 @@
 
 
 /* First part of user prologue.  */
-#line 1 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 1 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
 
 #include "ast.h"
 #include "yacc.tab.h"
@@ -81,7 +81,7 @@ void yyerror(YYLTYPE *locp, const char* s) {
 
 using namespace ast;
 
-#line 85 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 85 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -114,8 +114,8 @@ using namespace ast;
 
 /* Use api.header.include to #include this header
    instead of duplicating it here.  */
-#ifndef YY_YY_HOME_AARON_RUCDEKE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
-# define YY_YY_HOME_AARON_RUCDEKE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
+#ifndef YY_YY_HOME_LUO_RUCBASE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
+# define YY_YY_HOME_LUO_RUCBASE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -156,14 +156,18 @@ extern int yydebug;
     TXN_COMMIT = 282,
     TXN_ABORT = 283,
     TXN_ROLLBACK = 284,
-    LEQ = 285,
-    NEQ = 286,
-    GEQ = 287,
-    T_EOF = 288,
-    IDENTIFIER = 289,
-    VALUE_STRING = 290,
-    VALUE_INT = 291,
-    VALUE_FLOAT = 292
+    ORDER = 285,
+    BY = 286,
+    ASC = 287,
+    LIMIT = 288,
+    LEQ = 289,
+    NEQ = 290,
+    GEQ = 291,
+    T_EOF = 292,
+    IDENTIFIER = 293,
+    VALUE_STRING = 294,
+    VALUE_INT = 295,
+    VALUE_FLOAT = 296
   };
 #endif
 
@@ -187,7 +191,7 @@ struct YYLTYPE
 
 int yyparse (void);
 
-#endif /* !YY_YY_HOME_AARON_RUCDEKE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED  */
+#endif /* !YY_YY_HOME_LUO_RUCBASE_RUCBASE_SRC_PARSER_YACC_TAB_H_INCLUDED  */
 
 
 
@@ -288,7 +292,7 @@ typedef int yytype_uint16;
 #define YYSIZEOF(X) YY_CAST (YYPTRDIFF_T, sizeof (X))
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -496,19 +500,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  39
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   100
+#define YYLAST   113
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  47
+#define YYNTOKENS  51
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  25
+#define YYNNTS  27
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  61
+#define YYNRULES  69
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  116
+#define YYNSTATES  129
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   292
+#define YYMAXUTOK   296
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -524,9 +528,9 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      39,    40,    46,     2,    41,     2,    42,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,    38,
-      44,    43,    45,     2,     2,     2,     2,     2,     2,     2,
+      43,    44,    50,     2,    45,     2,    46,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    42,
+      48,    47,    49,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -549,20 +553,20 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37
+      35,    36,    37,    38,    39,    40,    41
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    54,    54,    59,    64,    69,    77,    78,    79,    80,
-      84,    88,    92,    96,   103,   110,   114,   118,   122,   126,
-     133,   137,   141,   145,   152,   156,   163,   170,   174,   178,
-     185,   189,   196,   200,   204,   211,   218,   219,   226,   230,
-     237,   241,   248,   252,   259,   263,   267,   271,   275,   279,
-     286,   290,   297,   301,   308,   315,   319,   323,   327,   331,
-     337,   339
+       0,    56,    56,    61,    66,    71,    79,    80,    81,    82,
+      86,    90,    94,    98,   105,   112,   116,   120,   124,   128,
+     135,   139,   143,   149,   153,   159,   163,   167,   171,   176,
+     181,   186,   193,   197,   204,   211,   215,   219,   226,   230,
+     237,   241,   245,   252,   259,   260,   267,   271,   278,   282,
+     289,   293,   300,   304,   308,   312,   316,   320,   327,   331,
+     338,   342,   349,   356,   360,   364,   368,   372,   378,   380
 };
 #endif
 
@@ -575,13 +579,13 @@ static const char *const yytname[] =
   "DROP", "DESC", "INSERT", "INTO", "VALUES", "DELETE", "FROM", "WHERE",
   "UPDATE", "SET", "SELECT", "INT", "CHAR", "FLOAT", "INDEX", "AND",
   "JOIN", "EXIT", "HELP", "TXN_BEGIN", "TXN_COMMIT", "TXN_ABORT",
-  "TXN_ROLLBACK", "LEQ", "NEQ", "GEQ", "T_EOF", "IDENTIFIER",
-  "VALUE_STRING", "VALUE_INT", "VALUE_FLOAT", "';'", "'('", "')'", "','",
-  "'.'", "'='", "'<'", "'>'", "'*'", "$accept", "start", "stmt", "txnStmt",
-  "dbStmt", "ddl", "dml", "fieldList", "field", "type", "valueList",
-  "value", "condition", "optWhereClause", "whereClause", "col", "colList",
-  "op", "expr", "setClauses", "setClause", "selector", "tableList",
-  "tbName", "colName", YY_NULLPTR
+  "TXN_ROLLBACK", "ORDER", "BY", "ASC", "LIMIT", "LEQ", "NEQ", "GEQ",
+  "T_EOF", "IDENTIFIER", "VALUE_STRING", "VALUE_INT", "VALUE_FLOAT", "';'",
+  "'('", "')'", "','", "'.'", "'='", "'<'", "'>'", "'*'", "$accept",
+  "start", "stmt", "txnStmt", "dbStmt", "ddl", "ordercol", "orderbyList",
+  "dml", "fieldList", "field", "type", "valueList", "value", "condition",
+  "optWhereClause", "whereClause", "col", "colList", "op", "expr",
+  "setClauses", "setClause", "selector", "tableList", "tbName", "colName", YY_NULLPTR
 };
 #endif
 
@@ -593,17 +597,18 @@ static const yytype_int16 yytoknum[] =
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,    59,    40,
-      41,    44,    46,    61,    60,    62,    42
+     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
+     295,   296,    59,    40,    41,    44,    46,    61,    60,    62,
+      42
 };
 # endif
 
-#define YYPACT_NINF (-68)
+#define YYPACT_NINF (-59)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-61)
+#define YYTABLE_NINF (-69)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -612,18 +617,19 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      40,    34,     7,    10,   -20,    29,    37,   -20,    -2,   -68,
-     -68,   -68,   -68,   -68,   -68,   -68,    42,    13,   -68,   -68,
-     -68,   -68,   -68,   -20,   -20,   -20,   -20,   -68,   -68,   -20,
-     -20,    38,    11,   -68,   -68,    15,    49,    21,   -68,   -68,
-     -68,    41,    43,   -68,    44,    68,    67,    50,    51,   -20,
-      50,    50,    50,    50,    47,    51,   -68,   -68,    -4,   -68,
-      45,   -68,   -11,   -68,   -68,   -16,   -68,    -1,    53,    54,
-      35,   -68,    65,    46,    50,   -68,    35,   -20,   -20,   -68,
-     -68,    50,   -68,    56,   -68,   -68,   -68,   -68,   -68,   -68,
-     -68,    -6,   -68,    51,   -68,   -68,   -68,   -68,   -68,   -68,
-      24,   -68,   -68,   -68,   -68,   -68,    60,   -68,    35,   -68,
-     -68,   -68,   -68,    57,   -68,   -68
+      36,    15,    49,    51,   -14,    28,    58,   -14,   -25,   -59,
+     -59,   -59,   -59,   -59,   -59,   -59,    27,    12,   -59,   -59,
+     -59,   -59,   -59,   -14,   -14,   -14,   -14,   -59,   -59,   -14,
+     -14,    33,    31,   -59,   -59,    38,    75,    43,   -59,   -59,
+     -59,    47,    50,   -59,    52,    80,    82,    56,    59,   -14,
+      56,    56,    56,    56,    55,    59,   -59,   -59,     1,   -59,
+      53,   -59,   -11,   -59,   -59,    14,   -59,    48,    57,    60,
+      35,   -59,    77,   -26,    56,   -59,    35,   -14,   -14,    17,
+     -59,    56,   -59,    62,   -59,   -59,   -59,   -59,   -59,   -59,
+     -59,    42,   -59,    59,   -59,   -59,   -59,   -59,   -59,   -59,
+      41,   -59,   -59,   -59,   -59,    71,    63,   -59,    66,   -59,
+      35,   -59,   -59,   -59,   -59,    56,   -59,    64,   -59,   -59,
+     -16,    -6,   -59,    67,    56,   -59,   -59,   -59,   -59
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -633,65 +639,68 @@ static const yytype_int8 yydefact[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     4,
        3,    10,    11,    12,    13,     5,     0,     0,     9,     6,
-       7,     8,    14,     0,     0,     0,     0,    60,    17,     0,
-       0,     0,    61,    55,    42,    56,     0,     0,    41,     1,
-       2,     0,     0,    16,     0,     0,    36,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    21,    61,    36,    52,
-       0,    43,    36,    57,    40,     0,    24,     0,     0,     0,
-       0,    38,    37,     0,     0,    22,     0,     0,     0,    23,
-      15,     0,    27,     0,    29,    26,    18,    19,    34,    32,
-      33,     0,    30,     0,    48,    47,    49,    44,    45,    46,
-       0,    53,    54,    59,    58,    25,     0,    20,     0,    39,
-      50,    51,    35,     0,    31,    28
+       7,     8,    14,     0,     0,     0,     0,    68,    17,     0,
+       0,     0,    69,    63,    50,    64,     0,     0,    49,     1,
+       2,     0,     0,    16,     0,     0,    44,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    26,    69,    44,    60,
+       0,    51,    44,    65,    48,     0,    32,     0,     0,     0,
+       0,    46,    45,     0,     0,    27,     0,     0,     0,    28,
+      15,     0,    35,     0,    37,    34,    18,    19,    42,    40,
+      41,     0,    38,     0,    56,    55,    57,    52,    53,    54,
+       0,    61,    62,    67,    66,     0,     0,    33,     0,    25,
+       0,    47,    58,    59,    43,     0,    30,     0,    39,    23,
+      29,    20,    36,     0,     0,    22,    21,    31,    24
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -68,   -68,   -68,   -68,   -68,   -68,   -68,   -68,    17,   -68,
-     -68,   -67,     6,   -47,   -68,    -8,   -68,   -68,   -68,   -68,
-      26,   -68,   -68,    -3,   -45
+     -59,   -59,   -59,   -59,   -59,   -59,   -15,   -59,   -59,   -59,
+      29,   -59,   -59,   -58,    18,   -42,   -59,    -8,   -59,   -59,
+     -59,   -59,    39,   -59,   -59,     7,   -46
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,    16,    17,    18,    19,    20,    21,    65,    66,    85,
-      91,    92,    71,    56,    72,    73,    35,   100,   112,    58,
-      59,    36,    62,    37,    38
+      -1,    16,    17,    18,    19,    20,   119,   120,    21,    65,
+      66,    85,    91,    92,    71,    56,    72,    73,    35,   100,
+     114,    58,    59,    36,    62,    37,    38
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_int16 yytable[] =
 {
-      34,    28,    60,    55,    31,    64,    67,    68,    69,   102,
-      55,    75,    77,    23,    27,    79,    25,    82,    83,    84,
-      41,    42,    43,    44,    80,    81,    45,    46,    24,    60,
-      78,    26,    32,   110,   107,   108,    67,    74,    22,    29,
-      61,   114,    39,     1,    33,     2,    63,     3,     4,     5,
-      30,    40,     6,   -60,    47,     7,    48,     8,    32,    88,
-      89,    90,    49,    50,     9,    10,    11,    12,    13,    14,
-      88,    89,    90,    15,   103,   104,    94,    95,    96,    54,
-      51,    55,    52,    53,    57,    32,    70,    93,    76,    97,
-      98,    99,   111,    86,    87,   106,   113,   115,   105,   109,
-     101
+      34,    60,   125,    55,    64,    67,    68,    69,    94,    95,
+      96,    28,    77,    32,    31,    55,    75,   123,   102,    22,
+      79,    97,    98,    99,    27,    33,   126,    39,    60,   124,
+      41,    42,    43,    44,    78,    67,    45,    46,    29,     1,
+      61,     2,   112,     3,     4,     5,    74,   105,     6,    47,
+     106,     7,   118,     8,    40,    23,    63,    25,    80,    81,
+       9,    10,    11,    12,    13,    14,    82,    83,    84,   121,
+      24,    30,    26,    15,    88,    89,    90,   -68,   121,    32,
+      88,    89,    90,    48,   103,   104,   109,   110,    49,    50,
+      51,    54,   113,    52,    57,    53,    55,    32,    70,    93,
+      76,    86,   115,   116,    87,   108,   117,   127,   122,   128,
+     107,   111,     0,   101
 };
 
 static const yytype_int8 yycheck[] =
 {
-       8,     4,    47,    14,     7,    50,    51,    52,    53,    76,
-      14,    58,    23,     6,    34,    62,     6,    18,    19,    20,
-      23,    24,    25,    26,    40,    41,    29,    30,    21,    74,
-      41,    21,    34,   100,    40,    41,    81,    41,     4,    10,
-      48,   108,     0,     3,    46,     5,    49,     7,     8,     9,
-      13,    38,    12,    42,    16,    15,    41,    17,    34,    35,
-      36,    37,    13,    42,    24,    25,    26,    27,    28,    29,
-      35,    36,    37,    33,    77,    78,    30,    31,    32,    11,
-      39,    14,    39,    39,    34,    34,    39,    22,    43,    43,
-      44,    45,   100,    40,    40,    39,    36,    40,    81,    93,
-      74
+       8,    47,     8,    14,    50,    51,    52,    53,    34,    35,
+      36,     4,    23,    38,     7,    14,    58,    33,    76,     4,
+      62,    47,    48,    49,    38,    50,    32,     0,    74,    45,
+      23,    24,    25,    26,    45,    81,    29,    30,    10,     3,
+      48,     5,   100,     7,     8,     9,    45,    30,    12,    16,
+      33,    15,   110,    17,    42,     6,    49,     6,    44,    45,
+      24,    25,    26,    27,    28,    29,    18,    19,    20,   115,
+      21,    13,    21,    37,    39,    40,    41,    46,   124,    38,
+      39,    40,    41,    45,    77,    78,    44,    45,    13,    46,
+      43,    11,   100,    43,    38,    43,    14,    38,    43,    22,
+      47,    44,    31,    40,    44,    43,    40,    40,    44,   124,
+      81,    93,    -1,    74
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -699,29 +708,30 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,     3,     5,     7,     8,     9,    12,    15,    17,    24,
-      25,    26,    27,    28,    29,    33,    48,    49,    50,    51,
-      52,    53,     4,     6,    21,     6,    21,    34,    70,    10,
-      13,    70,    34,    46,    62,    63,    68,    70,    71,     0,
-      38,    70,    70,    70,    70,    70,    70,    16,    41,    13,
-      42,    39,    39,    39,    11,    14,    60,    34,    66,    67,
-      71,    62,    69,    70,    71,    54,    55,    71,    71,    71,
-      39,    59,    61,    62,    41,    60,    43,    23,    41,    60,
-      40,    41,    18,    19,    20,    56,    40,    40,    35,    36,
-      37,    57,    58,    22,    30,    31,    32,    43,    44,    45,
-      64,    67,    58,    70,    70,    55,    39,    40,    41,    59,
-      58,    62,    65,    36,    58,    40
+      25,    26,    27,    28,    29,    37,    52,    53,    54,    55,
+      56,    59,     4,     6,    21,     6,    21,    38,    76,    10,
+      13,    76,    38,    50,    68,    69,    74,    76,    77,     0,
+      42,    76,    76,    76,    76,    76,    76,    16,    45,    13,
+      46,    43,    43,    43,    11,    14,    66,    38,    72,    73,
+      77,    68,    75,    76,    77,    60,    61,    77,    77,    77,
+      43,    65,    67,    68,    45,    66,    47,    23,    45,    66,
+      44,    45,    18,    19,    20,    62,    44,    44,    39,    40,
+      41,    63,    64,    22,    34,    35,    36,    47,    48,    49,
+      70,    73,    64,    76,    76,    30,    33,    61,    43,    44,
+      45,    65,    64,    68,    71,    31,    40,    40,    64,    57,
+      58,    77,    44,    33,    45,     8,    32,    40,    57
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    47,    48,    48,    48,    48,    49,    49,    49,    49,
-      50,    50,    50,    50,    51,    52,    52,    52,    52,    52,
-      53,    53,    53,    53,    54,    54,    55,    56,    56,    56,
-      57,    57,    58,    58,    58,    59,    60,    60,    61,    61,
-      62,    62,    63,    63,    64,    64,    64,    64,    64,    64,
-      65,    65,    66,    66,    67,    68,    68,    69,    69,    69,
-      70,    71
+       0,    51,    52,    52,    52,    52,    53,    53,    53,    53,
+      54,    54,    54,    54,    55,    56,    56,    56,    56,    56,
+      57,    57,    57,    58,    58,    59,    59,    59,    59,    59,
+      59,    59,    60,    60,    61,    62,    62,    62,    63,    63,
+      64,    64,    64,    65,    66,    66,    67,    67,    68,    68,
+      69,    69,    70,    70,    70,    70,    70,    70,    71,    71,
+      72,    72,    73,    74,    74,    75,    75,    75,    76,    77
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -729,11 +739,11 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     2,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     2,     6,     3,     2,     6,     6,
-       7,     4,     5,     5,     1,     3,     2,     1,     4,     1,
-       1,     3,     1,     1,     1,     3,     0,     2,     1,     3,
-       3,     1,     1,     3,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     3,     3,     1,     1,     1,     3,     3,
-       1,     1
+       1,     2,     2,     1,     3,     7,     4,     5,     5,     8,
+       7,    10,     1,     3,     2,     1,     4,     1,     1,     3,
+       1,     1,     1,     3,     0,     2,     1,     3,     3,     1,
+       1,     3,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     3,     3,     1,     1,     1,     3,     3,     1,     1
 };
 
 
@@ -1530,433 +1540,497 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 55 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 57 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         parse_tree = (yyvsp[-1].sv_node);
         YYACCEPT;
     }
-#line 1539 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1549 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 3:
-#line 60 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 62 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         parse_tree = std::make_shared<Help>();
         YYACCEPT;
     }
-#line 1548 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1558 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 4:
-#line 65 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 67 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         parse_tree = nullptr;
         YYACCEPT;
     }
-#line 1557 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1567 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 5:
-#line 70 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 72 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         parse_tree = nullptr;
         YYACCEPT;
     }
-#line 1566 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1576 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 10:
-#line 85 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 87 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<TxnBegin>();
     }
-#line 1574 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1584 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 11:
-#line 89 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 91 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<TxnCommit>();
     }
-#line 1582 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1592 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 12:
-#line 93 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 95 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<TxnAbort>();
     }
-#line 1590 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1600 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 13:
-#line 97 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 99 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<TxnRollback>();
     }
-#line 1598 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1608 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 14:
-#line 104 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 106 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<ShowTables>();
     }
-#line 1606 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1616 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 15:
-#line 111 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 113 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<CreateTable>((yyvsp[-3].sv_str), (yyvsp[-1].sv_fields));
     }
-#line 1614 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1624 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 16:
-#line 115 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 117 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<DropTable>((yyvsp[0].sv_str));
     }
-#line 1622 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1632 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 17:
-#line 119 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 121 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<DescTable>((yyvsp[0].sv_str));
     }
-#line 1630 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1640 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 18:
-#line 123 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 125 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<CreateIndex>((yyvsp[-3].sv_str), (yyvsp[-1].sv_str));
     }
-#line 1638 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1648 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 19:
-#line 127 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 129 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_node) = std::make_shared<DropIndex>((yyvsp[-3].sv_str), (yyvsp[-1].sv_str));
     }
-#line 1646 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1656 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 20:
-#line 134 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 136 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_node) = std::make_shared<InsertStmt>((yyvsp[-4].sv_str), (yyvsp[-1].sv_vals));
+        (yyval.sv_order_col) = std::make_shared<OrderCol>((yyvsp[0].sv_str), true);
     }
-#line 1654 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1664 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 21:
-#line 138 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 140 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_node) = std::make_shared<DeleteStmt>((yyvsp[-1].sv_str), (yyvsp[0].sv_conds));
+        (yyval.sv_order_col) = std::make_shared<OrderCol>((yyvsp[-1].sv_str), true);
     }
-#line 1662 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1672 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 22:
-#line 142 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 144 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_node) = std::make_shared<UpdateStmt>((yyvsp[-3].sv_str), (yyvsp[-1].sv_set_clauses), (yyvsp[0].sv_conds));
+        (yyval.sv_order_col) = std::make_shared<OrderCol>((yyvsp[-1].sv_str), false);
     }
-#line 1670 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1680 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 23:
-#line 146 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 150 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-3].sv_cols), (yyvsp[-1].sv_strs), (yyvsp[0].sv_conds));
+        (yyval.sv_order_cols) = std::vector<std::shared_ptr<OrderCol>>{(yyvsp[0].sv_order_col)};
     }
-#line 1678 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1688 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 24:
-#line 153 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 154 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_fields) = std::vector<std::shared_ptr<Field>>{(yyvsp[0].sv_field)};
+        (yyval.sv_order_cols).push_back((yyvsp[0].sv_order_col));
     }
-#line 1686 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1696 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 25:
-#line 157 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 160 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_fields).push_back((yyvsp[0].sv_field));
+        (yyval.sv_node) = std::make_shared<InsertStmt>((yyvsp[-4].sv_str), (yyvsp[-1].sv_vals));
     }
-#line 1694 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1704 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 26:
-#line 164 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 164 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_field) = std::make_shared<ColDef>((yyvsp[-1].sv_str), (yyvsp[0].sv_type_len));
+        (yyval.sv_node) = std::make_shared<DeleteStmt>((yyvsp[-1].sv_str), (yyvsp[0].sv_conds));
     }
-#line 1702 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1712 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 27:
-#line 171 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 168 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_INT, sizeof(int));
+        (yyval.sv_node) = std::make_shared<UpdateStmt>((yyvsp[-3].sv_str), (yyvsp[-1].sv_set_clauses), (yyvsp[0].sv_conds));
     }
-#line 1710 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1720 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 28:
-#line 175 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 172 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_STRING, (yyvsp[-1].sv_int));
+        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-3].sv_cols), (yyvsp[-1].sv_strs), (yyvsp[0].sv_conds));
     }
-#line 1718 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1728 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 29:
-#line 179 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 177 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_FLOAT, sizeof(float));
+        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-6].sv_cols), (yyvsp[-4].sv_strs), (yyvsp[-3].sv_conds), (yyvsp[0].sv_order_cols));
     }
-#line 1726 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1736 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 30:
-#line 186 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 182 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_vals) = std::vector<std::shared_ptr<Value>>{(yyvsp[0].sv_val)};
+        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-5].sv_cols), (yyvsp[-3].sv_strs), (yyvsp[-2].sv_conds), std::vector<std::shared_ptr<OrderCol>>{}, (yyvsp[0].sv_int));
     }
-#line 1734 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1744 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 31:
-#line 190 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 187 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_vals).push_back((yyvsp[0].sv_val));
+        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-8].sv_cols), (yyvsp[-6].sv_strs), (yyvsp[-5].sv_conds), (yyvsp[-2].sv_order_cols), (yyvsp[0].sv_int));
     }
-#line 1742 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1752 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 32:
-#line 197 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 194 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_val) = std::make_shared<IntLit>((yyvsp[0].sv_int));
+        (yyval.sv_fields) = std::vector<std::shared_ptr<Field>>{(yyvsp[0].sv_field)};
     }
-#line 1750 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1760 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 33:
-#line 201 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 198 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_val) = std::make_shared<FloatLit>((yyvsp[0].sv_float));
+        (yyval.sv_fields).push_back((yyvsp[0].sv_field));
     }
-#line 1758 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1768 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 34:
-#line 205 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 205 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_val) = std::make_shared<StringLit>((yyvsp[0].sv_str));
+        (yyval.sv_field) = std::make_shared<ColDef>((yyvsp[-1].sv_str), (yyvsp[0].sv_type_len));
     }
-#line 1766 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1776 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 35:
-#line 212 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 212 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_cond) = std::make_shared<BinaryExpr>((yyvsp[-2].sv_col), (yyvsp[-1].sv_comp_op), (yyvsp[0].sv_expr));
+        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_INT, sizeof(int));
     }
-#line 1774 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1784 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 36:
-#line 218 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
-                      { /* ignore*/ }
-#line 1780 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 216 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_STRING, (yyvsp[-1].sv_int));
+    }
+#line 1792 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 37:
-#line 220 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 220 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_conds) = (yyvsp[0].sv_conds);
+        (yyval.sv_type_len) = std::make_shared<TypeLen>(SV_TYPE_FLOAT, sizeof(float));
     }
-#line 1788 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1800 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 38:
-#line 227 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 227 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_conds) = std::vector<std::shared_ptr<BinaryExpr>>{(yyvsp[0].sv_cond)};
+        (yyval.sv_vals) = std::vector<std::shared_ptr<Value>>{(yyvsp[0].sv_val)};
     }
-#line 1796 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1808 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 39:
-#line 231 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 231 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_conds).push_back((yyvsp[0].sv_cond));
+        (yyval.sv_vals).push_back((yyvsp[0].sv_val));
     }
-#line 1804 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1816 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 40:
-#line 238 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 238 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_col) = std::make_shared<Col>((yyvsp[-2].sv_str), (yyvsp[0].sv_str));
+        (yyval.sv_val) = std::make_shared<IntLit>((yyvsp[0].sv_int));
     }
-#line 1812 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1824 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 41:
-#line 242 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 242 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_col) = std::make_shared<Col>("", (yyvsp[0].sv_str));
+        (yyval.sv_val) = std::make_shared<FloatLit>((yyvsp[0].sv_float));
     }
-#line 1820 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1832 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 42:
-#line 249 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 246 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_cols) = std::vector<std::shared_ptr<Col>>{(yyvsp[0].sv_col)};
+        (yyval.sv_val) = std::make_shared<StringLit>((yyvsp[0].sv_str));
     }
-#line 1828 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1840 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 43:
-#line 253 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 253 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_cols).push_back((yyvsp[0].sv_col));
+        (yyval.sv_cond) = std::make_shared<BinaryExpr>((yyvsp[-2].sv_col), (yyvsp[-1].sv_comp_op), (yyvsp[0].sv_expr));
     }
-#line 1836 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1848 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 44:
-#line 260 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
-    {
-        (yyval.sv_comp_op) = SV_OP_EQ;
-    }
-#line 1844 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 259 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+                      { /* ignore*/ }
+#line 1854 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 45:
-#line 264 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 261 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_comp_op) = SV_OP_LT;
+        (yyval.sv_conds) = (yyvsp[0].sv_conds);
     }
-#line 1852 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1862 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 46:
-#line 268 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 268 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_comp_op) = SV_OP_GT;
+        (yyval.sv_conds) = std::vector<std::shared_ptr<BinaryExpr>>{(yyvsp[0].sv_cond)};
     }
-#line 1860 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1870 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 47:
-#line 272 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 272 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_comp_op) = SV_OP_NE;
+        (yyval.sv_conds).push_back((yyvsp[0].sv_cond));
     }
-#line 1868 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1878 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 48:
-#line 276 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 279 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_comp_op) = SV_OP_LE;
+        (yyval.sv_col) = std::make_shared<Col>((yyvsp[-2].sv_str), (yyvsp[0].sv_str));
     }
-#line 1876 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1886 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 49:
-#line 280 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 283 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_comp_op) = SV_OP_GE;
+        (yyval.sv_col) = std::make_shared<Col>("", (yyvsp[0].sv_str));
     }
-#line 1884 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1894 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 50:
-#line 287 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 290 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_expr) = std::static_pointer_cast<Expr>((yyvsp[0].sv_val));
+        (yyval.sv_cols) = std::vector<std::shared_ptr<Col>>{(yyvsp[0].sv_col)};
     }
-#line 1892 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1902 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 51:
-#line 291 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 294 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_expr) = std::static_pointer_cast<Expr>((yyvsp[0].sv_col));
+        (yyval.sv_cols).push_back((yyvsp[0].sv_col));
     }
-#line 1900 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1910 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 52:
-#line 298 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 301 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_set_clauses) = std::vector<std::shared_ptr<SetClause>>{(yyvsp[0].sv_set_clause)};
+        (yyval.sv_comp_op) = SV_OP_EQ;
     }
-#line 1908 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1918 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 53:
-#line 302 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 305 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_set_clauses).push_back((yyvsp[0].sv_set_clause));
+        (yyval.sv_comp_op) = SV_OP_LT;
     }
-#line 1916 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1926 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 54:
-#line 309 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 309 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_set_clause) = std::make_shared<SetClause>((yyvsp[-2].sv_str), (yyvsp[0].sv_val));
+        (yyval.sv_comp_op) = SV_OP_GT;
     }
-#line 1924 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1934 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 55:
-#line 316 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 313 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_cols) = {};
+        (yyval.sv_comp_op) = SV_OP_NE;
     }
-#line 1932 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1942 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 56:
+#line 317 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_comp_op) = SV_OP_LE;
+    }
+#line 1950 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 57:
-#line 324 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 321 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_strs) = std::vector<std::string>{(yyvsp[0].sv_str)};
+        (yyval.sv_comp_op) = SV_OP_GE;
     }
-#line 1940 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1958 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 58:
-#line 328 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 328 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_strs).push_back((yyvsp[0].sv_str));
+        (yyval.sv_expr) = std::static_pointer_cast<Expr>((yyvsp[0].sv_val));
     }
-#line 1948 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 1966 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
   case 59:
-#line 332 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 332 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_expr) = std::static_pointer_cast<Expr>((yyvsp[0].sv_col));
+    }
+#line 1974 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 60:
+#line 339 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_set_clauses) = std::vector<std::shared_ptr<SetClause>>{(yyvsp[0].sv_set_clause)};
+    }
+#line 1982 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 61:
+#line 343 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_set_clauses).push_back((yyvsp[0].sv_set_clause));
+    }
+#line 1990 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 62:
+#line 350 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_set_clause) = std::make_shared<SetClause>((yyvsp[-2].sv_str), (yyvsp[0].sv_val));
+    }
+#line 1998 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 63:
+#line 357 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_cols) = {};
+    }
+#line 2006 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 65:
+#line 365 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_strs) = std::vector<std::string>{(yyvsp[0].sv_str)};
+    }
+#line 2014 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 66:
+#line 369 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
         (yyval.sv_strs).push_back((yyvsp[0].sv_str));
     }
-#line 1956 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 2022 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
+    break;
+
+  case 67:
+#line 373 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
+    {
+        (yyval.sv_strs).push_back((yyvsp[0].sv_str));
+    }
+#line 2030 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;
 
 
-#line 1960 "/home/aaron/rucdeke/rucbase/src/parser/yacc.tab.cpp"
+#line 2034 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
 
       default: break;
     }
@@ -2194,5 +2268,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 340 "/home/aaron/rucdeke/rucbase/src/parser/yacc.y"
+#line 381 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
 

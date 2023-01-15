@@ -98,7 +98,11 @@ void QlManager::insert_into(const std::string &tab_name, std::vector<Value> valu
     // make InsertExecutor
     // call InsertExecutor.Next()
     // lab3 task3 Todo end
-    InsertExecutor executor(sm_manager_,tab_name,values,context);
+    InsertExecutor executor(sm_manager_, tab_name, values, context);
+    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    context->txn_->GetLockSet()->insert(lock_data_id);
     executor.Next();
 }
 
@@ -113,13 +117,17 @@ void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> 
     // 根据get_indexNo判断conds上有无索引
     // 创建合适的scan executor(有索引优先用索引)
     // lab3 task3 Todo end
-    int index_no = get_indexNo(tab_name,conds);
-    if(index_no == -1){
-        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_,tab_name,conds,context);
-    }else{
-        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_,tab_name,conds,index_no,context);
+    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    context->txn_->GetLockSet()->insert(lock_data_id);
+    int index_no = get_indexNo(tab_name, conds);
+    if (index_no == -1) {
+        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_, tab_name, conds, context);
+    } else {
+        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_, tab_name, conds, index_no, context);
     }
-    
+
     for (scanExecutor->beginTuple(); !scanExecutor->is_end(); scanExecutor->nextTuple()) {
         rids.push_back(scanExecutor->rid());
     }
@@ -128,7 +136,7 @@ void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> 
     // make deleteExecutor
     // call deleteExecutor.Next()
     // lab3 task3 Todo end
-    DeleteExecutor executor(sm_manager_,tab_name,conds,rids,context);
+    DeleteExecutor executor(sm_manager_, tab_name, conds, rids, context);
     executor.Next();
 }
 
@@ -155,17 +163,21 @@ void QlManager::update_set(const std::string &tab_name, std::vector<SetClause> s
     // make updateExecutor
     // call updateExecutor.Next()
     // lab3 task3 Todo end
+    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    context->txn_->GetLockSet()->insert(lock_data_id);
     std::unique_ptr<AbstractExecutor> scanExecutor;
-    int index_no = get_indexNo(tab_name,conds);
-    if(index_no == -1){
-        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_,tab_name,conds,context);
-    }else{
-        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_,tab_name,conds,index_no,context);
+    int index_no = get_indexNo(tab_name, conds);
+    if (index_no == -1) {
+        scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_, tab_name, conds, context);
+    } else {
+        scanExecutor = std::make_unique<IndexScanExecutor>(sm_manager_, tab_name, conds, index_no, context);
     }
     for (scanExecutor->beginTuple(); !scanExecutor->is_end(); scanExecutor->nextTuple()) {
         rids.push_back(scanExecutor->rid());
     }
-    UpdateExecutor executor(sm_manager_,tab_name,set_clauses,conds,rids,context);
+    UpdateExecutor executor(sm_manager_, tab_name, set_clauses, conds, rids, context);
     executor.Next();
 }
 
@@ -227,6 +239,12 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
         // 根据get_indexNo判断conds上有无索引
         // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
         // lab3 task2 Todo end
+        for (std::string tab_name : tab_names) {
+            RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+            context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
+            LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+            context->txn_->GetLockSet()->insert(lock_data_id);
+        }
         if (index_no != -1) {
             // printf("index_no: %d\n", index_no);
             table_scan_executors[i] =

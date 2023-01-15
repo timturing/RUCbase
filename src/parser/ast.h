@@ -166,16 +166,36 @@ struct UpdateStmt : public TreeNode {
                std::vector<std::shared_ptr<BinaryExpr>> conds_) :
             tab_name(std::move(tab_name_)), set_clauses(std::move(set_clauses_)), conds(std::move(conds_)) {}
 };
+struct OrderCol : public TreeNode {
+    std::string col_name;
+    bool is_asc;
 
+    OrderCol(std::string col_name_, bool is_asc_) :
+            col_name(std::move(col_name_)), is_asc(is_asc_) {}
+};
 struct SelectStmt : public TreeNode {
     std::vector<std::shared_ptr<Col>> cols;
     std::vector<std::string> tabs;
     std::vector<std::shared_ptr<BinaryExpr>> conds;
-
+    std::vector<std::shared_ptr<OrderCol>> order_cols;
+    int limit;
+    //TODO可以在yacc中将limit置成-1 然后追踪一下inter的代码，Ql增加一个select语句的函数
+    //TODO 一个解耦不够好的方法是，在Ql中加入一些order的成员变量，然后增加cmp函数，cmp中用if来判断return xxx < yyy
     SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
                std::vector<std::string> tabs_,
                std::vector<std::shared_ptr<BinaryExpr>> conds_) :
             cols(std::move(cols_)), tabs(std::move(tabs_)), conds(std::move(conds_)) {}
+    SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
+               std::vector<std::string> tabs_,
+               std::vector<std::shared_ptr<BinaryExpr>> conds_,
+               std::vector<std::shared_ptr<OrderCol>> order_cols_) :
+            cols(std::move(cols_)), tabs(std::move(tabs_)), conds(std::move(conds_)), order_cols(std::move(order_cols_)){}
+    SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
+               std::vector<std::string> tabs_,
+               std::vector<std::shared_ptr<BinaryExpr>> conds_,
+               std::vector<std::shared_ptr<OrderCol>> order_cols_,
+               int limit_) :
+            cols(std::move(cols_)), tabs(std::move(tabs_)), conds(std::move(conds_)), order_cols(std::move(order_cols_)), limit(limit_) {}
 };
 
 // Semantic value
@@ -193,6 +213,10 @@ struct SemValue {
 
     std::shared_ptr<Field> sv_field;
     std::vector<std::shared_ptr<Field>> sv_fields;
+
+    // order
+    std::shared_ptr<OrderCol> sv_order_col;
+    std::vector<std::shared_ptr<OrderCol>> sv_order_cols;
 
     std::shared_ptr<Expr> sv_expr;
 

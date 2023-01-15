@@ -23,6 +23,7 @@ using namespace ast;
 // keywords
 %token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM
 WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK
+ORDER BY ASC LIMIT
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
 
@@ -48,7 +49,8 @@ WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_CO
 %type <sv_set_clauses> setClauses
 %type <sv_cond> condition
 %type <sv_conds> whereClause optWhereClause
-
+%type <sv_order_col> ordercol
+%type <sv_order_cols> orderbyList
 %%
 start:
         stmt ';'
@@ -129,6 +131,30 @@ ddl:
     }
     ;
 
+ordercol:
+        colName
+    {
+        $$ = std::make_shared<OrderCol>($1, true);
+    }
+    |   colName ASC
+    {
+        $$ = std::make_shared<OrderCol>($1, true);
+    }
+    |   colName DESC
+    {
+        $$ = std::make_shared<OrderCol>($1, false);
+    }
+    ;
+orderbyList:
+        ordercol
+    {
+        $$ = std::vector<std::shared_ptr<OrderCol>>{$1};
+    }
+    |   orderbyList ',' ordercol
+    {
+        $$.push_back($3);
+    }
+    ;
 dml:
         INSERT INTO tbName VALUES '(' valueList ')'
     {
@@ -145,6 +171,21 @@ dml:
     |   SELECT selector FROM tableList optWhereClause
     {
         $$ = std::make_shared<SelectStmt>($2, $4, $5);
+    }
+    /* order by */
+    |  SELECT selector FROM tableList optWhereClause ORDER BY orderbyList
+    {
+        $$ = std::make_shared<SelectStmt>($2, $4, $5, $8);
+    }
+    /* limit */
+    |  SELECT selector FROM tableList optWhereClause LIMIT VALUE_INT
+    {
+        $$ = std::make_shared<SelectStmt>($2, $4, $5, std::vector<std::shared_ptr<OrderCol>>{}, $7);
+    }
+    /* order by and limit */
+    |  SELECT selector FROM tableList optWhereClause ORDER BY orderbyList LIMIT VALUE_INT
+    {
+        $$ = std::make_shared<SelectStmt>($2, $4, $5, $8, $10);
     }
     ;
 

@@ -51,7 +51,7 @@ class UpdateExecutor : public AbstractExecutor {
             WriteRecord* wr= new WriteRecord(WType::UPDATE_TUPLE, tab_name_, rid,*rec);
             context_->txn_->AppendWriteRecord(wr);  
             
-            for (int i = 0; i < tab_.cols.size(); i++) {
+            for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
                     auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();//index file handle
                     ifh->delete_entry(rec->data + tab_.cols[i].offset,context_->txn_);
@@ -68,7 +68,7 @@ class UpdateExecutor : public AbstractExecutor {
             // Update record in record file
             for (auto &set_clause : set_clauses_) {
                 auto lhs_col = tab_.get_col(set_clause.lhs.col_name);
-                size_t lhs_col_idx = lhs_col - tab_.cols.begin();
+                // size_t lhs_col_idx = lhs_col - tab_.cols.begin();
                 // lab3 task3 Todo
                 // Update record in record file
                 // lab3 task3 Todo end
@@ -87,7 +87,7 @@ class UpdateExecutor : public AbstractExecutor {
             // Insert new entry into index
             // lab3 task3 Todo end
             // Insert new entry into index
-            for (int i = 0; i < tab_.cols.size(); i++) {
+            for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
                     auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();//index file handle
                     ifh->insert_entry(rec->data + tab_.cols[i].offset,rid,context_->txn_);

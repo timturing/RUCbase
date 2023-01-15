@@ -46,7 +46,7 @@ class DeleteExecutor : public AbstractExecutor {
             // lab3 task3 Todo end
             
             // Delete from index file
-            for (int i = 0; i < tab_.cols.size(); i++) {
+            for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                 if (tab_.cols[i].index) {
                     auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, i)).get();;//index file handle
                     ifh->delete_entry(rec->data + tab_.cols[i].offset,context_->txn_);
