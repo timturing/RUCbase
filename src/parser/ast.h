@@ -178,7 +178,7 @@ struct SelectStmt : public TreeNode {
     std::vector<std::string> tabs;
     std::vector<std::shared_ptr<BinaryExpr>> conds;
     std::vector<std::shared_ptr<OrderCol>> order_cols;
-    int limit;
+    int limit = -1;
     //TODO可以在yacc中将limit置成-1 然后追踪一下inter的代码，Ql增加一个select语句的函数
     //TODO 一个解耦不够好的方法是，在Ql中加入一些order的成员变量，然后增加cmp函数，cmp中用if来判断return xxx < yyy
     SelectStmt(std::vector<std::shared_ptr<Col>> cols_,

@@ -93,7 +93,7 @@ void TransactionManager::Abort(Transaction *txn, LogManager *log_manager) {
                 Context *context_ = new Context(lock_manager_, log_manager, txn);
                 auto rec = fh_->get_record(rid, context_);
                 // delete index
-                for (int i = 0; i < tab_.cols.size(); i++) {
+                for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                     if (tab_.cols[i].index) {
                         auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name, i))
                                        .get();  // index file handle
@@ -111,7 +111,7 @@ void TransactionManager::Abort(Transaction *txn, LogManager *log_manager) {
                 auto fh_ = sm_manager_->fhs_.at(tab_name).get();
                 Context *context_ = new Context(lock_manager_, log_manager, txn);
                 // delete index
-                for (int i = 0; i < tab_.cols.size(); i++) {
+                for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                     if (tab_.cols[i].index) {
                         auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name, i))
                                        .get();  // index file handle
@@ -120,7 +120,7 @@ void TransactionManager::Abort(Transaction *txn, LogManager *log_manager) {
                     // update record
                     fh_->update_record(rid, rec.data, context_);
                     // insert index
-                    for (int i = 0; i < tab_.cols.size(); i++) {
+                    for (long unsigned int i = 0; i < tab_.cols.size(); i++) {
                         if (tab_.cols[i].index) {
                             auto ifh = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name, i))
                                            .get();  // index file handle

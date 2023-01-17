@@ -239,12 +239,12 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
         // 根据get_indexNo判断conds上有无索引
         // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
         // lab3 task2 Todo end
-        for (std::string tab_name : tab_names) {
-            RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
-            context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
-            LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
-            context->txn_->GetLockSet()->insert(lock_data_id);
-        }
+        // for (std::string tab_name : tab_names) {
+        //     RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+        //     context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
+        //     LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+        //     context->txn_->GetLockSet()->insert(lock_data_id);
+        // }
         if (index_no != -1) {
             // printf("index_no: %d\n", index_no);
             table_scan_executors[i] =
@@ -307,4 +307,140 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
     rec_printer.print_separator(context);
     // Print record count
     RecordPrinter::print_record_count(num_rec, context);
+}
+struct OrderUnit
+{
+    std::vector<std::string> tuple;
+    std::vector<int> is_asc;// size == order_cols.size()
+};
+/**
+ * @brief select plan 生成
+ *
+ * @param sel_cols select plan 选取的列
+ * @param tab_names select plan 目标的表
+ * @param conds select plan 选取条件
+ * @param order_cols select plan 排序的列
+ * @param limit select plan 限制输出的个数
+ */
+void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vector<std::string> &tab_names,
+                            std::vector<Condition> conds, std::vector<OrderByCol> order_cols, int limit,
+                            Context *context) 
+{
+     // Parse selector
+    auto all_cols = get_all_cols(tab_names);
+    if (sel_cols.empty()) {
+        // select all columns
+        for (auto &col : all_cols) {
+            TabCol sel_col = {.tab_name = col.tab_name, .col_name = col.name};
+            sel_cols.push_back(sel_col);
+        }
+    } else {
+        // infer table name from column name
+        for (auto &sel_col : sel_cols) {
+            sel_col = check_column(all_cols, sel_col);  // 列元数据校验
+        }
+        // infer order by column,相当于嫁接在select上
+        // !有重复怎么办
+        for (auto &order_col : order_cols) {
+            TabCol sel_col = {.col_name=order_col.col_name};
+            sel_col = check_column(all_cols, sel_col);  // 列元数据校验
+            order_col.tab_name = sel_col.tab_name;
+            sel_cols.push_back(sel_col);
+        }
+    }
+    // Parse where clause
+    conds = check_where_clause(tab_names, conds);
+    // Scan table , 生成表算子列表tab_nodes
+    std::vector<std::unique_ptr<AbstractExecutor>> table_scan_executors(tab_names.size());
+    for (size_t i = 0; i < tab_names.size(); i++) {
+        auto curr_conds = pop_conds(conds, {tab_names.begin(), tab_names.begin() + i + 1});
+        int index_no = get_indexNo(tab_names[i], curr_conds);
+        // lab3 task2 Todo
+        // 根据get_indexNo判断conds上有无索引
+        // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
+        // lab3 task2 Todo end
+        for (std::string tab_name : tab_names) {
+            RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+            context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
+            LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+            context->txn_->GetLockSet()->insert(lock_data_id);
+        }
+        if (index_no != -1) {
+            // printf("index_no: %d\n", index_no);
+            table_scan_executors[i] =
+                std::make_unique<IndexScanExecutor>(sm_manager_, tab_names[i], curr_conds, index_no, context);
+        } else {
+            // printf("no index\n");
+            table_scan_executors[i] = std::make_unique<SeqScanExecutor>(sm_manager_, tab_names[i], curr_conds, context);
+        }
+    }
+    assert(conds.empty());
+
+    std::unique_ptr<AbstractExecutor> executorTreeRoot = std::move(table_scan_executors.back());
+
+    // lab3 task2 Todo
+    // 构建算子二叉树
+    // 逆序遍历tab_nodes为左节点, 现query_plan为右节点,生成joinNode作为新query_plan 根节点
+    // 生成query_plan tree完毕后, 根节点转换成投影算子
+    // lab3 task2 Todo End
+    for (int i = tab_names.size() - 2; i >= 0; i--) {
+        std::unique_ptr<AbstractExecutor> left = std::move(table_scan_executors[i]);
+        std::unique_ptr<AbstractExecutor> right = std::move(executorTreeRoot);
+        executorTreeRoot = std::make_unique<NestedLoopJoinExecutor>(std::move(left), std::move(right));
+    }
+    executorTreeRoot = std::make_unique<ProjectionExecutor>(std::move(executorTreeRoot), sel_cols);
+    // 创建了select+order的投影后，注意一下这里的抬头输出，所以还是先删掉
+    sel_cols.erase(sel_cols.end()-order_cols.size(),sel_cols.end());
+    // Column titles
+    std::vector<std::string> captions;
+    captions.reserve(sel_cols.size());
+    for (auto &sel_col : sel_cols) {
+        captions.push_back(sel_col.col_name);
+    }
+    // Print header
+    RecordPrinter rec_printer(sel_cols.size());
+    rec_printer.print_separator(context);
+    rec_printer.print_record(captions, context);
+    rec_printer.print_separator(context);
+    // Print records
+    size_t num_rec = 0;
+    std::vector<std::vector<std::string> > all_table;//所有的select+order列结果
+    // 执行query_plan
+    for (executorTreeRoot->beginTuple(); !executorTreeRoot->is_end(); executorTreeRoot->nextTuple()) {
+        auto Tuple = executorTreeRoot->Next();
+        std::vector<std::string> columns;
+        for (auto &col : executorTreeRoot->cols()) {
+            std::string col_str;
+            char *rec_buf = Tuple->data + col.offset;
+            if (col.type == TYPE_INT) {
+                col_str = std::to_string(*(int *)rec_buf);
+            } else if (col.type == TYPE_FLOAT) {
+                col_str = std::to_string(*(float *)rec_buf);
+            } else if (col.type == TYPE_STRING) {
+                col_str = std::string((char *)rec_buf, col.len);
+                col_str.resize(strlen(col_str.c_str()));
+            }
+            columns.push_back(col_str);
+        }
+        rec_printer.print_record(columns, context);
+        all_table.push_back(columns);
+        num_rec++;
+        if(limit>0&&num_rec==limit)
+        {
+            break;
+        }
+    }
+    // TODO 现在all_table里面有select+order by的列的所有结果，需要排序了
+    // TODO 这里可以用vector<string>的swap直接交换两列，所以需要自己写一个快排，输入两个vector<string>，要比较的列号，排序是升序还是降序
+    // !注意此时的sel_col已经恢复正常，只是all_table里面有所有的结果
+    // !排序完后记得砍掉所有order _by列(其实就是把vector<string>的最后几个pop掉)
+
+
+
+
+    // Print footer
+    rec_printer.print_separator(context);
+    // Print record count
+    RecordPrinter::print_record_count(num_rec, context);
+
 }

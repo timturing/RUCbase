@@ -139,12 +139,18 @@ class Interp {
             // select;
             std::vector<Condition> conds = interp_where_clause(x->conds);
             std::vector<TabCol> sel_cols;
+            std::vector<OrderByCol> order_cols;
             for (auto &sv_sel_col : x->cols) {
                 TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
                 sel_cols.push_back(sel_col);
             }
+            // for (auto &sv_order_col : x->order_cols) {
+            //     OrderByCol order_col = {.col_name = sv_order_col->col_name,.is_asc = sv_order_col->is_asc};
+            //     order_cols.push_back(order_col);
+            // }
             SetTransaction(txn_id, context);
             ql_manager_->select_from(sel_cols, x->tabs, conds, context);
+            // ql_manager_->select_from(sel_cols, x->tabs, conds, order_cols,x->limit, context);
             if(context->txn_->GetTxnMode() == false)
                 txn_mgr_->Commit(context->txn_, context->log_mgr_);
         } else if (auto x = std::dynamic_pointer_cast<ast::TxnBegin>(root)) {

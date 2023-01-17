@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "execution_defs.h"
 #include "record/rm.h"
@@ -20,6 +21,12 @@ struct TabCol {
     }
 };
 
+struct OrderByCol{
+    std::string tab_name;
+    std::string col_name;
+    bool is_asc;
+    // d51e1dec6a191e2d4bc9f9822002347f03473d74
+};
 struct Value {
     ColType type;  // type of value
     union {
@@ -95,6 +102,9 @@ class QlManager {
 
     void select_from(std::vector<TabCol> sel_cols, const std::vector<std::string> &tab_names,
                      std::vector<Condition> conds, Context *context);
+
+    void select_from_orderby(std::vector<TabCol> sel_cols, const std::vector<std::string> &tab_names,
+                     std::vector<Condition> conds, std::vector<OrderByCol> order_cols, int limit, Context *context);
 
    private:
     TabCol check_column(const std::vector<ColMeta> &all_cols, TabCol target);

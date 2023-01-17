@@ -1730,7 +1730,7 @@ yyreduce:
   case 29:
 #line 177 "/home/luo/RUCbase/rucbase/src/parser/yacc.y"
     {
-        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-6].sv_cols), (yyvsp[-4].sv_strs), (yyvsp[-3].sv_conds), (yyvsp[0].sv_order_cols));
+        (yyval.sv_node) = std::make_shared<SelectStmt>((yyvsp[-6].sv_cols), (yyvsp[-4].sv_strs), (yyvsp[-3].sv_conds), (yyvsp[0].sv_order_cols), -1);
     }
 #line 1736 "/home/luo/RUCbase/rucbase/src/parser/yacc.tab.cpp"
     break;

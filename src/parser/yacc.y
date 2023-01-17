@@ -175,7 +175,7 @@ dml:
     /* order by */
     |  SELECT selector FROM tableList optWhereClause ORDER BY orderbyList
     {
-        $$ = std::make_shared<SelectStmt>($2, $4, $5, $8);
+        $$ = std::make_shared<SelectStmt>($2, $4, $5, $8, -1);
     }
     /* limit */
     |  SELECT selector FROM tableList optWhereClause LIMIT VALUE_INT
