@@ -118,12 +118,17 @@ class InterpForTest {
             // select;
             std::vector<Condition> conds = interp_where_clause(x->conds);
             std::vector<TabCol> sel_cols;
+            std::vector<OrderByCol> order_cols;
             for (auto &sv_sel_col : x->cols) {
                 TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
                 sel_cols.push_back(sel_col);
             }
-
-            ql_manager_->select_from(sel_cols, x->tabs, conds, context);
+            
+            for (auto &sv_order_col : x->order_cols) {
+                OrderByCol order_col = {.tab_name = "", .col_name = sv_order_col->col_name, .is_asc = sv_order_col->is_asc};
+                order_cols.push_back(order_col);
+            }
+            ql_manager_->select_from_orderby(sel_cols, x->tabs, conds, order_cols,x->limit ,context);
 
         } else {
             throw InternalError("Unexpected AST root");

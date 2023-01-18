@@ -1,15 +1,77 @@
->> select * from student;
-rucbase> select * from student;
+>> create table test (Company char(10), OrderNumber int);
+rucbase> create table test (Company char(10), OrderNumber int);
+
 ------------------------------
->> select * from grade;
-rucbase> select * from grade;
+>> insert into test values('IBM',3532);
+rucbase> insert into test values('IBM',3532);
+
 ------------------------------
->> select * from student where id>=2;
-rucbase> select * from student where id>=2;
+>> insert into test values('Microsoft',2356);
+rucbase> insert into test values('Microsoft',2356);
+
 ------------------------------
->> select * from student, grade;
-rucbase> select * from student, grade;
+>> insert into test values('Apple',4698);
+rucbase> insert into test values('Apple',4698);
+
 ------------------------------
->> select id, name, major, course from student, grade where student.id = grade.student_id;
-rucbase> select id, name, major, course from student, grade where student.id = grade.student_id;
+>> insert into test values('Microsoft',6953);
+rucbase> insert into test values('Microsoft',6953);
+
+------------------------------
+>> insert into test values('IBM',310);
+rucbase> insert into test values('IBM',310);
+
+------------------------------
+>> SELECT Company, OrderNumber FROM test ORDER BY Company;
+rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company;
++------------------+------------------+
+|          Company |      OrderNumber |
++------------------+------------------+
+|            Apple |             4698 |
+|              IBM |              310 |
+|              IBM |             3532 |
+|        Microsoft |             6953 |
+|        Microsoft |             2356 |
++------------------+------------------+
+Total record(s): 5
+
+------------------------------
+>> SELECT Company, OrderNumber FROM test ORDER BY Company, OrderNumber;
+rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company, OrderNumber;
++------------------+------------------+
+|          Company |      OrderNumber |
++------------------+------------------+
+|            Apple |             4698 |
+|              IBM |              310 |
+|              IBM |             3532 |
+|        Microsoft |             2356 |
+|        Microsoft |             6953 |
++------------------+------------------+
+Total record(s): 5
+
+------------------------------
+>> SELECT Company, OrderNumber FROM test ORDER BY Company DESC, OrderNumber ASC;
+rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company DESC, OrderNumber ASC;
++------------------+------------------+
+|          Company |      OrderNumber |
++------------------+------------------+
+|        Microsoft |             2356 |
+|        Microsoft |             6953 |
+|              IBM |              310 |
+|              IBM |             3532 |
+|            Apple |             4698 |
++------------------+------------------+
+Total record(s): 5
+
+------------------------------
+>> SELECT Company, OrderNumber FROM test ORDER BY OrderNumber ASC LIMIT 2;
+rucbase> SELECT Company, OrderNumber FROM test ORDER BY OrderNumber ASC LIMIT 2;
++------------------+------------------+
+|          Company |      OrderNumber |
++------------------+------------------+
+|              IBM |              310 |
+|        Microsoft |             2356 |
++------------------+------------------+
+Total record(s): 2
+
 ------------------------------

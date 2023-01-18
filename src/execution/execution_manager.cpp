@@ -99,10 +99,10 @@ void QlManager::insert_into(const std::string &tab_name, std::vector<Value> valu
     // call InsertExecutor.Next()
     // lab3 task3 Todo end
     InsertExecutor executor(sm_manager_, tab_name, values, context);
-    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
-    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
-    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
-    context->txn_->GetLockSet()->insert(lock_data_id);
+    // RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    // context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    // LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    // context->txn_->GetLockSet()->insert(lock_data_id);
     executor.Next();
 }
 
@@ -117,10 +117,10 @@ void QlManager::delete_from(const std::string &tab_name, std::vector<Condition> 
     // 根据get_indexNo判断conds上有无索引
     // 创建合适的scan executor(有索引优先用索引)
     // lab3 task3 Todo end
-    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
-    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
-    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
-    context->txn_->GetLockSet()->insert(lock_data_id);
+    // RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    // context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    // LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    // context->txn_->GetLockSet()->insert(lock_data_id);
     int index_no = get_indexNo(tab_name, conds);
     if (index_no == -1) {
         scanExecutor = std::make_unique<SeqScanExecutor>(sm_manager_, tab_name, conds, context);
@@ -163,10 +163,10 @@ void QlManager::update_set(const std::string &tab_name, std::vector<SetClause> s
     // make updateExecutor
     // call updateExecutor.Next()
     // lab3 task3 Todo end
-    RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
-    context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
-    LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
-    context->txn_->GetLockSet()->insert(lock_data_id);
+    // RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+    // context->lock_mgr_->LockIXOnTable(context->txn_, rfh->GetFd());
+    // LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+    // context->txn_->GetLockSet()->insert(lock_data_id);
     std::unique_ptr<AbstractExecutor> scanExecutor;
     int index_no = get_indexNo(tab_name, conds);
     if (index_no == -1) {
@@ -308,11 +308,7 @@ void QlManager::select_from(std::vector<TabCol> sel_cols, const std::vector<std:
     // Print record count
     RecordPrinter::print_record_count(num_rec, context);
 }
-struct OrderUnit
-{
-    std::vector<std::string> tuple;
-    std::vector<int> is_asc;// size == order_cols.size()
-};
+
 /**
  * @brief select plan 生成
  *
@@ -326,6 +322,8 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
                             std::vector<Condition> conds, std::vector<OrderByCol> order_cols, int limit,
                             Context *context) 
 {
+    std::vector<int> is_asc;//排序法则
+    std::vector<ColType> coltype;
      // Parse selector
     auto all_cols = get_all_cols(tab_names);
     if (sel_cols.empty()) {
@@ -333,20 +331,23 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
         for (auto &col : all_cols) {
             TabCol sel_col = {.tab_name = col.tab_name, .col_name = col.name};
             sel_cols.push_back(sel_col);
+            is_asc.push_back(-1);
         }
     } else {
         // infer table name from column name
         for (auto &sel_col : sel_cols) {
             sel_col = check_column(all_cols, sel_col);  // 列元数据校验
+            is_asc.push_back(-1);
         }
-        // infer order by column,相当于嫁接在select上
-        // !有重复怎么办
-        // for (auto &order_col : order_cols) {
-            // TabCol sel_col = {.col_name=order_col.col_name,.tab_name=""};
-        //     sel_col = check_column(all_cols, sel_col);  // 列元数据校验
-        //     order_col.tab_name = sel_col.tab_name;
-        //     sel_cols.push_back(sel_col);
-        // }
+    }
+    // !有重复怎么办
+
+    for (auto &order_col : order_cols) {
+        TabCol sel_col = {.tab_name ="", .col_name=order_col.col_name};
+        sel_col = check_column(all_cols, sel_col);  // 列元数据校验
+        order_col.tab_name = sel_col.tab_name;
+        sel_cols.push_back(sel_col);
+        is_asc.push_back(order_col.is_asc);
     }
     // Parse where clause
     conds = check_where_clause(tab_names, conds);
@@ -359,12 +360,12 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
         // 根据get_indexNo判断conds上有无索引
         // 创建合适的scan executor(有索引优先用索引)存入table_scan_executors
         // lab3 task2 Todo end
-        for (std::string tab_name : tab_names) {
-            RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
-            context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
-            LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
-            context->txn_->GetLockSet()->insert(lock_data_id);
-        }
+        // for (std::string tab_name : tab_names) {
+        //     RmFileHandle *rfh = sm_manager_->fhs_.at(tab_name).get();
+        //     context->lock_mgr_->LockISOnTable(context->txn_, rfh->GetFd());
+        //     LockDataId lock_data_id = LockDataId{rfh->GetFd(), LockDataType::TABLE};
+        //     context->txn_->GetLockSet()->insert(lock_data_id);
+        // }
         if (index_no != -1) {
             // printf("index_no: %d\n", index_no);
             table_scan_executors[i] =
@@ -404,7 +405,7 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
     rec_printer.print_separator(context);
     // Print records
     size_t num_rec = 0;
-    std::vector<std::vector<std::string> > all_table;//所有的select+order列结果
+    std::vector<OrderUnit> all_table;//所有的select+order列结果
     // 执行query_plan
     for (executorTreeRoot->beginTuple(); !executorTreeRoot->is_end(); executorTreeRoot->nextTuple()) {
         auto Tuple = executorTreeRoot->Next();
@@ -421,20 +422,36 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
                 col_str.resize(strlen(col_str.c_str()));
             }
             columns.push_back(col_str);
+            if(coltype.size()<is_asc.size())coltype.push_back(col.type);
         }
-        rec_printer.print_record(columns, context);
-        all_table.push_back(columns);
-        num_rec++;
-        if(limit>0&&num_rec==limit)
-        {
-            break;
-        }
+        // rec_printer.print_record(columns, context);
+        OrderUnit tmp;
+        tmp.tuple=columns;
+        tmp.is_asc=is_asc;
+        tmp.coltype=coltype;
+        all_table.push_back(tmp);
+        // num_rec++;
+        // if(limit>0&&num_rec==limit)
+        // {
+        //     break;
+        // }
     }
     // TODO 现在all_table里面有select+order by的列的所有结果，需要排序了
     // TODO 这里可以用vector<string>的swap直接交换两列，所以需要自己写一个快排，输入两个vector<string>，要比较的列号，排序是升序还是降序
     // !注意此时的sel_col已经恢复正常，只是all_table里面有所有的结果
-    // !排序完后记得砍掉所有order _by列(其实就是把vector<string>的最后几个pop掉)
-
+    // !排序完后记得砍掉所有order _by列(其实就是把vector<string>的最后几个忽略掉)
+    std::sort(all_table.begin(),all_table.end());
+    for(std::size_t i=0;i<all_table.size();i++)
+    {
+        std::vector<std::string> columns;
+        columns.assign(all_table[i].tuple.begin(),all_table[i].tuple.begin()+sel_cols.size());
+        rec_printer.print_record(columns, context);
+        num_rec++;
+        if(limit>0&&num_rec==(size_t)limit)
+        {
+            break;
+        }
+    }
 
 
 

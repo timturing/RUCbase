@@ -25,7 +25,57 @@ struct OrderByCol{
     std::string tab_name;
     std::string col_name;
     bool is_asc;
-    // d51e1dec6a191e2d4bc9f9822002347f03473d74
+};
+struct OrderUnit
+{
+    public:
+    std::vector<std::string> tuple;
+    std::vector<int> is_asc; //! size == sel+order _cols.size()，静态省空间
+    std::vector<ColType> coltype;
+    bool operator< (const struct OrderUnit b) const
+    {
+        assert(tuple.size()==is_asc.size());
+        bool flag = true;
+        for(std::size_t i=0;i<is_asc.size();i++)
+        {
+            
+            if(is_asc[i]==-1)
+            {
+                continue;//不是排序的列
+            }
+            else if(is_asc[i]==1)//升序的列
+            {
+                if(coltype[i]==TYPE_INT)return atoi(tuple[i].c_str())<atoi(b.tuple[i].c_str());
+                if(coltype[i]==TYPE_FLOAT)return atof(tuple[i].c_str())<atof(b.tuple[i].c_str());
+                
+                if(tuple[i].compare(b.tuple[i])<0)//<
+                {
+                    return flag;
+                }
+                else if(tuple[i].compare(b.tuple[i])>0)
+                {
+                    return !flag;
+                }
+                //相等则跳过
+            }
+            else if(is_asc[i]==0)//降序的列
+            {
+                if(coltype[i]==TYPE_INT)return atoi(tuple[i].c_str())>atoi(b.tuple[i].c_str());
+                if(coltype[i]==TYPE_FLOAT)return atof(tuple[i].c_str())>atof(b.tuple[i].c_str());
+                if(tuple[i].compare(b.tuple[i])<0)//<
+                {
+                    return !flag;
+                }
+                else if(tuple[i].compare(b.tuple[i])>0)
+                {
+                    return flag;
+                }
+                //相等则跳过
+            }
+        }
+
+        return true;
+    }
 };
 struct Value {
     ColType type;  // type of value
