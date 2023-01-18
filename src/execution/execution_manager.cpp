@@ -341,12 +341,12 @@ void QlManager::select_from_orderby(std::vector<TabCol> sel_cols, const std::vec
         }
         // infer order by column,相当于嫁接在select上
         // !有重复怎么办
-        for (auto &order_col : order_cols) {
-            TabCol sel_col = {.col_name=order_col.col_name};
-            sel_col = check_column(all_cols, sel_col);  // 列元数据校验
-            order_col.tab_name = sel_col.tab_name;
-            sel_cols.push_back(sel_col);
-        }
+        // for (auto &order_col : order_cols) {
+            // TabCol sel_col = {.col_name=order_col.col_name,.tab_name=""};
+        //     sel_col = check_column(all_cols, sel_col);  // 列元数据校验
+        //     order_col.tab_name = sel_col.tab_name;
+        //     sel_cols.push_back(sel_col);
+        // }
     }
     // Parse where clause
     conds = check_where_clause(tab_names, conds);

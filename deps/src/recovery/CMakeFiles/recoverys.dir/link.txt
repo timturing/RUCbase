@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -Wall -shared -Wl,-soname,librecoverys.so -o ../../lib/librecoverys.so CMakeFiles/recoverys.dir/log_manager.cpp.o CMakeFiles/recoverys.dir/log_recovery.cpp.o CMakeFiles/recoverys.dir/checkpoint.cpp.o 

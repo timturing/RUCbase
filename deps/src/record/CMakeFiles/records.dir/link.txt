@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -Wall -shared -Wl,-soname,librecords.so -o ../../lib/librecords.so CMakeFiles/records.dir/rm_file_handle.cpp.o CMakeFiles/records.dir/rm_scan.cpp.o 

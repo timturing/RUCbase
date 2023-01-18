@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/librecovery.a CMakeFiles/recovery.dir/log_manager.cpp.o CMakeFiles/recovery.dir/log_recovery.cpp.o CMakeFiles/recovery.dir/checkpoint.cpp.o
+/usr/bin/ranlib ../../lib/librecovery.a

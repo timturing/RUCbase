@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall CMakeFiles/b_plus_tree_concurrent_test.dir/b_plus_tree_concurrent_test.cpp.o -o ../../bin/b_plus_tree_concurrent_test  ../../lib/libindex.a ../../lib/libgtest_main.a ../../lib/libstorage.a ../../lib/libgtest.a -lpthread 

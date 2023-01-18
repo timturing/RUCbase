@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall CMakeFiles/lru_replacer_test.dir/lru_replacer_test.cpp.o -o ../../bin/lru_replacer_test  ../../lib/liblru_replacer.a ../../lib/libgtest_main.a ../../lib/libgtest.a -lpthread 

@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libtransaction.a CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o CMakeFiles/transaction.dir/transaction_manager.cpp.o
+/usr/bin/ranlib ../../lib/libtransaction.a

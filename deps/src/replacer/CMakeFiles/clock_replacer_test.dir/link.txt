@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall CMakeFiles/clock_replacer_test.dir/clock_replacer_test.cpp.o -o ../../bin/clock_replacer_test  ../../lib/libclock_replacer.a ../../lib/libgtest_main.a ../../lib/libgtest.a -lpthread 

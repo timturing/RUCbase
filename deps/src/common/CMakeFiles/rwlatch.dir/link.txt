@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/librwlatch.a CMakeFiles/rwlatch.dir/rwlatch.cpp.o
+/usr/bin/ranlib ../../lib/librwlatch.a

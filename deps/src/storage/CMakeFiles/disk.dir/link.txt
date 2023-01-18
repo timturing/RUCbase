@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libdisk.a CMakeFiles/disk.dir/disk_manager.cpp.o
+/usr/bin/ranlib ../../lib/libdisk.a

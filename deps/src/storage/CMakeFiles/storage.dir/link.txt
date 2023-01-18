@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/libstorage.a CMakeFiles/storage.dir/disk_manager.cpp.o CMakeFiles/storage.dir/buffer_pool_manager.cpp.o CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o CMakeFiles/storage.dir/__/replacer/clock_replacer.cpp.o
+/usr/bin/ranlib ../../lib/libstorage.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/liblru_replacer.a CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o CMakeFiles/lru_replacer.dir/clock_replacer.cpp.o
+/usr/bin/ranlib ../../lib/liblru_replacer.a

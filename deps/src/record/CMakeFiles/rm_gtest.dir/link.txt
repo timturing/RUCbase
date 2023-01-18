@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall CMakeFiles/rm_gtest.dir/rm_gtest.cpp.o -o ../../bin/rm_gtest  ../../lib/librecord.a ../../lib/libgtest_main.a ../../lib/libsystem.a ../../lib/libtransaction.a ../../lib/librecovery.a ../../lib/librecord.a ../../lib/libsystem.a ../../lib/libtransaction.a ../../lib/librecovery.a ../../lib/libindex.a ../../lib/libstorage.a -lpthread ../../lib/libgtest.a -lpthread 

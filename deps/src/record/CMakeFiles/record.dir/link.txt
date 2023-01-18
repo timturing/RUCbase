@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/librecord.a CMakeFiles/record.dir/rm_file_handle.cpp.o CMakeFiles/record.dir/rm_scan.cpp.o
+/usr/bin/ranlib ../../lib/librecord.a
