@@ -25,31 +25,24 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
     // 2. 从根节点开始不断向下查找目标key
     // 3. 找到包含该key值的叶子结点停止查找，并返回叶子节点
     // 蟹行协议
-    // 1.如果是查找
-    if(operation==Operation::FIND)
-    {
-        // 对于查找操作，进入树的每一层结点都是先在当前结点获取读锁，然后释放父结点读锁
-        page_id_t rootpageno = file_hdr_.root_page;
-        page_id_t pageno;
-        IxNodeHandle *now = FetchNode(rootpageno);
-        //只要还不是叶子节点,就在内部节点一路往下找
-        while (!now->page_hdr->is_leaf) {
-            pageno = now->InternalLookup(key);
-            now = FetchNode(pageno);
-        }
-        //现在它是叶子节点了
-        return now;
+    
+    // 进入树的每一层结点都是先在当前结点获取读锁，然后释放父结点读锁
+    page_id_t rootpageno = file_hdr_.root_page;
+    page_id_t pageno;
+    IxNodeHandle *now = FetchNode(rootpageno);
+    // 共享锁锁住根节点
+    now->mutex_.lock_shared();
+    //只要还不是叶子节点,就在内部节点一路往下找
+    while (!now->page_hdr->is_leaf) {
+        pageno = now->InternalLookup(key);
+        now->mutex_.unlock_shared();
+        now = FetchNode(pageno);
+        // 共享锁锁住当前节点
+        now->mutex_.lock_shared();
     }
-    // 2.如果是插入
-    else if(operation==Operation::INSERT)
-    {
-        // 对于插入操作，进入树的每一层结点都是先在当前结点获取写锁，然后释放父结点读锁
-    }
-    // 3.如果是删除
-    else if(operation==Operation::DELETE)
-    {
-        // 对于删除操作，进入树的每一层结点都是先在当前结点获取写锁，然后释放父结点读锁
-    }
+    //现在它是叶子节点了
+    // now->mutex_.unlock_shared();在GetValue等中释放
+    return now;
 }
 
 /**
@@ -67,6 +60,7 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     // 3. 把rid存入result参数中
     // TODO 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
     IxNodeHandle *leaf = FindLeafPage(key, Operation::FIND, transaction);
+    leaf->mutex_.unlock_shared();
     Rid **value = new (Rid *);
     bool flag = leaf->LeafLookup(key, value);
     if (flag) result->push_back(**value);
@@ -90,6 +84,8 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
     std::scoped_lock lock{root_latch_};
     IxNodeHandle *leaf = FindLeafPage(key, Operation::INSERT, transaction);
+    leaf->mutex_.unlock_shared();
+    leaf->mutex_.lock();
     int before_insert = leaf->page_hdr->num_key;
     int after_insert = leaf->Insert(key, value);
     if(leaf->page_hdr->next_leaf==1)file_hdr_.last_leaf=leaf->GetPageNo();
@@ -98,17 +94,22 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
         if (leaf->page_hdr->num_key == leaf->GetMaxSize()) {
             //分裂
             IxNodeHandle *newleaf = Split(leaf);
+            newleaf->mutex_.lock();
             //更新父节点
             InsertIntoParent(leaf, newleaf->keys, newleaf, transaction);
+            newleaf->mutex_.unlock();
             if (newleaf->page_hdr->next_leaf == 1) {
             file_hdr_.last_leaf = newleaf->GetPageNo();
             // disk_manager_->write_page(fd_, IX_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
             }
-            buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
             buffer_pool_manager_->UnpinPage(newleaf->GetPageId(), true);
         }
+        buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
+        leaf->mutex_.unlock();
         return true;
     }
+    leaf->mutex_.unlock();
+    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
     return false;
 }
 
@@ -208,6 +209,7 @@ void IxIndexHandle::InsertIntoParent(IxNodeHandle *old_node, const char *key, Ix
     } else {
         //如果old_node不是根节点,则直接在其父节点中插入key
         IxNodeHandle *parent = FetchNode(old_node->page_hdr->parent);
+        parent->mutex_.lock();
         parent->Insert(new_node->get_key(0),Rid{new_node->GetPageNo(),-1});
         // if (old_node->page_hdr->next_free_page_no == INVALID_PAGE_ID) {
         //     file_hdr_.last_leaf = new_node->GetPageNo();
@@ -216,9 +218,12 @@ void IxIndexHandle::InsertIntoParent(IxNodeHandle *old_node, const char *key, Ix
         //如果父节点满了,就要分裂
         if (parent->page_hdr->num_key == new_node->GetMaxSize()) {
             IxNodeHandle *newparent = Split(parent);
+            newparent->mutex_.lock();
             //更新根节点
             InsertIntoParent(parent, newparent->keys, newparent, transaction);
+            newparent->mutex_.unlock();
         }
+        parent->mutex_.unlock();
         buffer_pool_manager_->UnpinPage(parent->GetPageId(), true);
     }
 }
@@ -241,6 +246,7 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
     std::scoped_lock lock{root_latch_};
     //获取叶子结点
     IxNodeHandle *leaf = FindLeafPage(key, Operation::DELETE, transaction);
+    leaf->mutex_.unlock_shared();
     //删除键值对
     int before_delete = leaf->page_hdr->num_key;
     int after_delete = leaf->Remove(key);

@@ -1,6 +1,9 @@
 #pragma once
 #include "ix_defs.h"
-
+#include <iostream>
+#include <mutex>    //unique_lock
+#include <shared_mutex> //shared_mutex shared_lock
+#include <thread>
 static const bool binary_search = true;  // 控制在lower_bound/uppper_bound函数中是否使用二分查找
 
 /**
@@ -33,7 +36,7 @@ inline int ix_compare(const char *a, const char *b, ColType type, int col_len) {
 class IxNodeHandle {
     friend class IxIndexHandle;
     friend class IxScan;
-
+    mutable std::shared_mutex mutex_; // 读写锁并发
    private:
     const IxFileHdr *file_hdr;  // 用到了file_hdr的keys_size, col_len
     Page *page;
