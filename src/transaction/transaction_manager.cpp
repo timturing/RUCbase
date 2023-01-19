@@ -78,7 +78,7 @@ void TransactionManager::Abort(Transaction *txn, LogManager *log_manager) {
 
     // 1. 回滚所有写操作
     if (txn->GetWriteSet()->size() != 0) {
-        for (auto it = txn->GetWriteSet()->begin(); it != txn->GetWriteSet()->end(); it++) {
+        for (auto it = txn->GetWriteSet()->rbegin(); it != txn->GetWriteSet()->rend(); it++) {
             log_manager->AppendLogRecord(
                 new LogRecord(txn->GetTransactionId(), txn->GetPrevLsn(), LogRecordType::ABORT));
             // 回滚操作
