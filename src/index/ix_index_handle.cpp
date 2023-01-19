@@ -24,17 +24,32 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
     // 1. 获取根节点
     // 2. 从根节点开始不断向下查找目标key
     // 3. 找到包含该key值的叶子结点停止查找，并返回叶子节点
-    page_id_t rootpageno = file_hdr_.root_page;
-    page_id_t pageno;
-    IxNodeHandle *now = FetchNode(rootpageno);
-    //只要还不是叶子节点,就在内部节点一路往下找
-    while (!now->page_hdr->is_leaf) {
-        pageno = now->InternalLookup(key);
-        // buffer_pool_manager_->UnpinPage(now->GetPageId(), false);  //是要unpin吗
-        now = FetchNode(pageno);
+    // 蟹行协议
+    // 1.如果是查找
+    if(operation==Operation::FIND)
+    {
+        // 对于查找操作，进入树的每一层结点都是先在当前结点获取读锁，然后释放父结点读锁
+        page_id_t rootpageno = file_hdr_.root_page;
+        page_id_t pageno;
+        IxNodeHandle *now = FetchNode(rootpageno);
+        //只要还不是叶子节点,就在内部节点一路往下找
+        while (!now->page_hdr->is_leaf) {
+            pageno = now->InternalLookup(key);
+            now = FetchNode(pageno);
+        }
+        //现在它是叶子节点了
+        return now;
     }
-    //现在它是叶子节点了
-    return now;
+    // 2.如果是插入
+    else if(operation==Operation::INSERT)
+    {
+        // 对于插入操作，进入树的每一层结点都是先在当前结点获取写锁，然后释放父结点读锁
+    }
+    // 3.如果是删除
+    else if(operation==Operation::DELETE)
+    {
+        // 对于删除操作，进入树的每一层结点都是先在当前结点获取写锁，然后释放父结点读锁
+    }
 }
 
 /**
