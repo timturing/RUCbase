@@ -19,7 +19,7 @@ IxIndexHandle::IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffe
  * @return 返回目标叶子结点
  * @note need to Unpin the leaf node outside!
  */
-IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, Transaction *transaction) {
+std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Operation operation, Transaction *transaction) {
     // Todo:
     // 1. 获取根节点
     // 2. 从根节点开始不断向下查找目标key
@@ -29,42 +29,43 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
         page_id_t rootpageno = file_hdr_.root_page;
         page_id_t pageno;
         IxNodeHandle *now = FetchNode(rootpageno);
-        now->mutex_.lock_shared();
+        now->page->RLatch();
         // 只要还不是叶子节点,就在内部节点一路往下找
         while (!now->page_hdr->is_leaf) {
+            auto old_page = now->page;
             pageno = now->InternalLookup(key);
-            auto old = now;
             now = FetchNode(pageno);
-            now->mutex_.lock_shared();
-            old->mutex_.unlock_shared();
+            now->page->RLatch();
+            old_page->RUnlatch();
         }
-        return now;
+        return std::pair{now,false};
     }
     else if(operation == Operation::INSERT)
     {
+        bool flag=true;
         page_id_t rootpageno = file_hdr_.root_page;
         page_id_t pageno;
         IxNodeHandle *now = FetchNode(rootpageno);
-        now->mutex_.lock();
+        now->page->WLatch();
         transaction->AddIntoPageSet(now->page);
         // 只要还不是叶子节点,就在内部节点一路往下找
         while (!now->page_hdr->is_leaf) {
             pageno = now->InternalLookup(key);
             now = FetchNode(pageno);
-            now->mutex_.lock();
+            now->page->WLatch();
             if(now->GetSize()+1<now->GetMaxSize())//安全的节点
             {
+                flag=false;
                 while(!transaction->GetPageSet()->empty())
                 {
                     auto tmp_page = transaction->GetPageSet()->front();
-                    IxNodeHandle *tmp = FetchNode(tmp_page->GetPageId().page_no);
-                    tmp->mutex_.unlock();
+                    tmp_page->WUnlatch();
                     transaction->GetPageSet()->pop_front();
                 }
             }
             transaction->AddIntoPageSet(now->page);
         }
-        return now;
+        return std::pair{now,flag};
     }
     else if(operation == Operation::DELETE)
     {
@@ -76,7 +77,7 @@ IxNodeHandle *IxIndexHandle::FindLeafPage(const char *key, Operation operation, 
             pageno = now->InternalLookup(key);
             now = FetchNode(pageno);
         }
-        return now;
+        return {now,true};
     }
 }
 
@@ -94,13 +95,14 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     // 2. 在叶子节点中查找目标key值的位置，并读取key对应的rid
     // 3. 把rid存入result参数中
     // TODO 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
-    IxNodeHandle *leaf = FindLeafPage(key, Operation::FIND, transaction);
+    std::pair<IxNodeHandle*, bool> ret = FindLeafPage(key, Operation::FIND, transaction);
+    auto leaf = ret.first;
     Rid **value = new (Rid *);
     bool flag = leaf->LeafLookup(key, value);
     if (flag) result->push_back(**value);
     // delete value;
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);  // 这里也是unpin吗
-    leaf->mutex_.unlock_shared();
+    leaf->page->RUnlatch();
     return flag;
 }
 
@@ -118,7 +120,12 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
     // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
     // std::scoped_lock lock{root_latch_};
-    IxNodeHandle *leaf = FindLeafPage(key, Operation::INSERT, transaction);
+    std::pair<IxNodeHandle*, bool> ret = FindLeafPage(key, Operation::INSERT, transaction);
+    auto leaf = ret.first;
+    if(ret.second)
+    {
+        root_latch_.lock();
+    }
     // leaf->mutex_.unlock_shared();
     // leaf->mutex_.lock();
     int before_insert = leaf->page_hdr->num_key;
@@ -139,20 +146,19 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
             }
             buffer_pool_manager_->UnpinPage(newleaf->GetPageId(), true);
         }
-        buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
-        // leaf->mutex_.unlock();
-        return true;
     }
-    // leaf->mutex_.unlock();
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
     while(!transaction->GetPageSet()->empty())
     {
         auto tmp_page = transaction->GetPageSet()->front();
-        IxNodeHandle *tmp = FetchNode(tmp_page->GetPageId().page_no);
-        tmp->mutex_.unlock();
+        tmp_page->WUnlatch();
         transaction->GetPageSet()->pop_front();
     }
-    return false;
+    if(ret.second)
+    {
+        root_latch_.unlock();
+    }
+    return after_insert>before_insert;
 }
 
 /**
@@ -289,7 +295,8 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
     // TODO 注意要处理并发
     std::scoped_lock lock{root_latch_};
     // 获取叶子结点
-    IxNodeHandle *leaf = FindLeafPage(key, Operation::DELETE, transaction);
+    auto ret = FindLeafPage(key, Operation::DELETE, transaction);
+    auto leaf = ret.first;
     // leaf->mutex_.unlock_shared();
     // 删除键值对
     int before_delete = leaf->page_hdr->num_key;
@@ -626,8 +633,8 @@ Rid IxIndexHandle::get_rid(const Iid &iid) const {
 Iid IxIndexHandle::lower_bound(const char *key) {
     // int int_key = *(int *)key;
     // printf("my_lower_bound key=%d\n", int_key);
-
-    IxNodeHandle *node = FindLeafPage(key, Operation::FIND, nullptr);
+    auto ret = FindLeafPage(key, Operation::FIND, nullptr);
+    IxNodeHandle *node = ret.first;
     int key_idx = node->lower_bound(key);
 
     Iid iid = {.page_no = node->GetPageNo(), .slot_no = key_idx};
@@ -646,8 +653,8 @@ Iid IxIndexHandle::lower_bound(const char *key) {
 Iid IxIndexHandle::upper_bound(const char *key) {
     // int int_key = *(int *)key;
     // printf("my_upper_bound key=%d\n", int_key);
-
-    IxNodeHandle *node = FindLeafPage(key, Operation::FIND, nullptr);
+    auto ret = FindLeafPage(key, Operation::FIND, nullptr);
+    IxNodeHandle *node = ret.first;
     int key_idx = node->upper_bound(key);
 
     Iid iid;
