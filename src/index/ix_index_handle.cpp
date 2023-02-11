@@ -37,6 +37,7 @@ std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Oper
             now = FetchNode(pageno);
             now->page->RLatch();
             old_page->RUnlatch();
+            buffer_pool_manager_->UnpinPage(old_page->GetPageId(),false);
         }
         return std::pair{now,false};
     }
@@ -60,6 +61,7 @@ std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Oper
                 {
                     auto tmp_page = transaction->GetPageSet()->front();
                     tmp_page->WUnlatch();
+                    buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),false);
                     transaction->GetPageSet()->pop_front();
                 }
             }
@@ -101,8 +103,8 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     bool flag = leaf->LeafLookup(key, value);
     if (flag) result->push_back(**value);
     // delete value;
-    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);  // 这里也是unpin吗
     leaf->page->RUnlatch();
+    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     return flag;
 }
 
@@ -152,6 +154,7 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     {
         auto tmp_page = transaction->GetPageSet()->front();
         tmp_page->WUnlatch();
+        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),true);
         transaction->GetPageSet()->pop_front();
     }
     if(ret.second)
@@ -196,7 +199,9 @@ IxNodeHandle *IxIndexHandle::Split(IxNodeHandle *node) {
         node->page_hdr->next_leaf = new_node->GetPageNo();
         if (new_node->page_hdr->next_leaf != INVALID_PAGE_ID) {
             IxNodeHandle *next = FetchNode(new_node->page_hdr->next_leaf);
+            next->page->WLatch();
             next->page_hdr->prev_leaf = new_node->GetPageNo();
+            next->page->WUnlatch();
             buffer_pool_manager_->UnpinPage(next->GetPageId(), true);  //?
         }
     } else {
@@ -207,7 +212,7 @@ IxNodeHandle *IxIndexHandle::Split(IxNodeHandle *node) {
             maintain_child(new_node, i);
         }
     }
-
+    buffer_pool_manager_->UnpinPage(new_node->GetPageId(),true);
     return new_node;
 }
 
@@ -265,7 +270,7 @@ void IxIndexHandle::InsertIntoParent(IxNodeHandle *old_node, const char *key, Ix
         //     disk_manager_->write_page(fd_, IX_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
         // }
         // 如果父节点满了,就要分裂
-        if (parent->page_hdr->num_key == new_node->GetMaxSize()) {
+        if (parent->page_hdr->num_key >= new_node->GetMaxSize()) {
             IxNodeHandle *newparent = Split(parent);
             // newparent->mutex_.lock();
             // 更新根节点
