@@ -67,19 +67,37 @@ std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Oper
             }
             transaction->AddIntoPageSet(now->page);
         }
+        if(!flag)root_latch_.unlock();
         return std::pair{now,flag};
     }
     else if(operation == Operation::DELETE)
     {
+        bool flag=true;
         page_id_t rootpageno = file_hdr_.root_page;
         page_id_t pageno;
         IxNodeHandle *now = FetchNode(rootpageno);
+        now->page->WLatch();
+        transaction->AddIntoDeletedPageSet(now->page);
         // 只要还不是叶子节点,就在内部节点一路往下找
         while (!now->page_hdr->is_leaf) {
             pageno = now->InternalLookup(key);
             now = FetchNode(pageno);
+            now->page->WLatch();
+            if(now->GetSize()+1<now->GetMaxSize())//安全的节点
+            {
+                flag=false;
+                while(!transaction->GetDeletedPageSet()->empty())
+                {
+                    auto tmp_page = transaction->GetDeletedPageSet()->front();
+                    tmp_page->WUnlatch();
+                    buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),false);
+                    transaction->GetDeletedPageSet()->pop_front();
+                }
+            }
+            transaction->AddIntoDeletedPageSet(now->page);
         }
-        return {now,true};
+        if(!flag)root_latch_.unlock();
+        return std::pair{now,flag};
     }
 }
 
@@ -122,12 +140,9 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
     // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
     // std::scoped_lock lock{root_latch_};
+    root_latch_.lock();
     std::pair<IxNodeHandle*, bool> ret = FindLeafPage(key, Operation::INSERT, transaction);
     auto leaf = ret.first;
-    if(ret.second)
-    {
-        root_latch_.lock();
-    }
     // leaf->mutex_.unlock_shared();
     // leaf->mutex_.lock();
     int before_insert = leaf->page_hdr->num_key;
@@ -298,7 +313,7 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
     // 4. 如果需要并发，并且需要删除叶子结点，则需要在事务的delete_page_set中添加删除结点的对应页面；记得处理并发的上锁
 
     // TODO 注意要处理并发
-    std::scoped_lock lock{root_latch_};
+    root_latch_.lock();
     // 获取叶子结点
     auto ret = FindLeafPage(key, Operation::DELETE, transaction);
     auto leaf = ret.first;
@@ -315,13 +330,24 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
             //?这个应该写在这吗
             maintain_parent(leaf);
         }
-        if (ifdelete) {
-            // 如果需要删除叶子结点,则需要在事务的delete_page_set中添加删除结点的对应页面
-            transaction->AddIntoDeletedPageSet(leaf->page);
-        }
+        // if (ifdelete) {
+        //     // 如果需要删除叶子结点,则需要在事务的delete_page_set中添加删除结点的对应页面 似乎重复了
+        //     transaction->AddIntoDeletedPageSet(leaf->page);
+        // }
     }
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
-    return before_delete > after_delete;
+    while(!transaction->GetDeletedPageSet()->empty())
+    {
+        auto tmp_page = transaction->GetDeletedPageSet()->front();
+        tmp_page->WUnlatch();
+        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),true);
+        transaction->GetDeletedPageSet()->pop_front();
+    }
+    if(ret.second)
+    {
+        root_latch_.unlock();
+    }
+    return before_delete>after_delete;
 }
 
 /**
@@ -362,6 +388,7 @@ bool IxIndexHandle::CoalesceOrRedistribute(IxNodeHandle *node, Transaction *tran
             // index==0时，选取后继结点
             neighbor = FetchNode(parent->get_rid(index + 1)->page_no);
         }
+        neighbor->page->WLatch();
         // 如果node结点和兄弟结点的键值对数量之和，能够支撑两个B+树结点
         if (node->page_hdr->num_key + neighbor->page_hdr->num_key >= node->GetMinSize() * 2) {
             // 则只需要重新分配键值对
@@ -370,6 +397,7 @@ bool IxIndexHandle::CoalesceOrRedistribute(IxNodeHandle *node, Transaction *tran
             // 否则需要合并两个结点
             return Coalesce(&neighbor, &node, &parent, index, transaction);  // TODO是要return吗
         }
+        neighbor->page->WUnlatch();
         //? 这里是写maintain吗
         maintain_parent(node);
         maintain_parent(neighbor);
