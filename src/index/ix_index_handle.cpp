@@ -19,7 +19,8 @@ IxIndexHandle::IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffe
  * @return 返回目标叶子结点
  * @note need to Unpin the leaf node outside!
  */
-std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Operation operation, Transaction *transaction) {
+std::pair<IxNodeHandle *, bool> IxIndexHandle::FindLeafPage(const char *key, Operation operation,
+                                                            Transaction *transaction) {
     // Todo:
     // 1. 获取根节点
     // 2. 从根节点开始不断向下查找目标key
@@ -29,75 +30,132 @@ std::pair<IxNodeHandle*, bool> IxIndexHandle::FindLeafPage(const char *key, Oper
         page_id_t rootpageno = file_hdr_.root_page;
         page_id_t pageno;
         IxNodeHandle *now = FetchNode(rootpageno);
-        now->page->RLatch();
+        // now->page->RLatch();
         // 只要还不是叶子节点,就在内部节点一路往下找
         while (!now->page_hdr->is_leaf) {
             auto old_page = now->page;
             pageno = now->InternalLookup(key);
             now = FetchNode(pageno);
-            now->page->RLatch();
-            old_page->RUnlatch();
-            buffer_pool_manager_->UnpinPage(old_page->GetPageId(),false);
+            // now->page->RLatch();
+            // old_page->RUnlatch();
+            buffer_pool_manager_->UnpinPage(old_page->GetPageId(), false);
         }
-        return std::pair{now,false};
-    }
-    else if(operation == Operation::INSERT)
-    {
-        bool flag=true;
-        page_id_t rootpageno = file_hdr_.root_page;
-        page_id_t pageno;
-        IxNodeHandle *now = FetchNode(rootpageno);
-        now->page->WLatch();
-        transaction->AddIntoPageSet(now->page);
-        // 只要还不是叶子节点,就在内部节点一路往下找
-        while (!now->page_hdr->is_leaf) {
-            pageno = now->InternalLookup(key);
-            now = FetchNode(pageno);
-            now->page->WLatch();
-            if(now->GetSize()+1<now->GetMaxSize())//安全的节点
-            {
-                flag=false;
-                while(!transaction->GetPageSet()->empty())
-                {
-                    auto tmp_page = transaction->GetPageSet()->front();
-                    tmp_page->WUnlatch();
-                    buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),false);
-                    transaction->GetPageSet()->pop_front();
-                }
-            }
+        return std::pair{now, false};
+    } else if (operation == Operation::INSERT) {
+        // 乐观优化
+        {
+            bool flag = true;
+            page_id_t rootpageno = file_hdr_.root_page;
+            page_id_t pageno;
+            IxNodeHandle *now = FetchNode(rootpageno);
             transaction->AddIntoPageSet(now->page);
-        }
-        if(!flag)root_latch_.unlock();
-        return std::pair{now,flag};
-    }
-    else if(operation == Operation::DELETE)
-    {
-        bool flag=true;
-        page_id_t rootpageno = file_hdr_.root_page;
-        page_id_t pageno;
-        IxNodeHandle *now = FetchNode(rootpageno);
-        now->page->WLatch();
-        transaction->AddIntoDeletedPageSet(now->page);
-        // 只要还不是叶子节点,就在内部节点一路往下找
-        while (!now->page_hdr->is_leaf) {
-            pageno = now->InternalLookup(key);
-            now = FetchNode(pageno);
-            now->page->WLatch();
-            if(now->GetSize()+1<now->GetMaxSize())//安全的节点
-            {
-                flag=false;
-                while(!transaction->GetDeletedPageSet()->empty())
+            // 只要还不是叶子节点,就在内部节点一路往下找
+            while (!now->page_hdr->is_leaf) {
+                pageno = now->InternalLookup(key);
+                now = FetchNode(pageno);
+                if (now->GetSize() + 1 < now->GetMaxSize())  // 安全的节点
                 {
-                    auto tmp_page = transaction->GetDeletedPageSet()->front();
-                    tmp_page->WUnlatch();
-                    buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),false);
-                    transaction->GetDeletedPageSet()->pop_front();
+                    flag = false;
+                    while (!transaction->GetPageSet()->empty()) {
+                        auto tmp_page = transaction->GetPageSet()->front();
+                        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), false);
+                        transaction->GetPageSet()->pop_front();
+                    }
                 }
+                transaction->AddIntoPageSet(now->page);
             }
-            transaction->AddIntoDeletedPageSet(now->page);
+            if (transaction->GetPageSet()->size() == 1) {
+                auto leaf_page = transaction->GetPageSet()->front();
+                leaf_page->WLatch();
+                if (!flag) root_latch_.unlock();
+                return std::pair{now, flag};
+            }
         }
-        if(!flag)root_latch_.unlock();
-        return std::pair{now,flag};
+        {
+            // Abort & redo
+            transaction->GetPageSet()->clear();
+            bool flag = true;
+            page_id_t rootpageno = file_hdr_.root_page;
+            page_id_t pageno;
+            IxNodeHandle *now = FetchNode(rootpageno);
+            now->page->WLatch();
+            transaction->AddIntoPageSet(now->page);
+            // 只要还不是叶子节点,就在内部节点一路往下找
+            while (!now->page_hdr->is_leaf) {
+                pageno = now->InternalLookup(key);
+                now = FetchNode(pageno);
+                now->page->WLatch();
+                if (now->GetSize() + 1 < now->GetMaxSize())  // 安全的节点
+                {
+                    flag = false;
+                    while (!transaction->GetPageSet()->empty()) {
+                        auto tmp_page = transaction->GetPageSet()->front();
+                        tmp_page->WUnlatch();
+                        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), false);
+                        transaction->GetPageSet()->pop_front();
+                    }
+                }
+                transaction->AddIntoPageSet(now->page);
+            }
+            if (!flag) root_latch_.unlock();
+            return std::pair{now, flag};
+        }
+    } else if (operation == Operation::DELETE) {
+        {
+            bool flag = true;
+            page_id_t rootpageno = file_hdr_.root_page;
+            page_id_t pageno;
+            IxNodeHandle *now = FetchNode(rootpageno);
+            transaction->AddIntoDeletedPageSet(now->page);
+            // 只要还不是叶子节点,就在内部节点一路往下找
+            while (!now->page_hdr->is_leaf) {
+                pageno = now->InternalLookup(key);
+                now = FetchNode(pageno);
+                if (now->GetSize()>now->GetMinSize())  // 安全的节点
+                {
+                    flag = false;
+                    while (!transaction->GetDeletedPageSet()->empty()) {
+                        auto tmp_page = transaction->GetDeletedPageSet()->front();
+                        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), false);
+                        transaction->GetDeletedPageSet()->pop_front();
+                    }
+                }
+                transaction->AddIntoDeletedPageSet(now->page);
+            }
+            if (transaction->GetDeletedPageSet()->size() == 1) {
+                auto leaf_page = transaction->GetDeletedPageSet()->front();
+                leaf_page->WLatch();
+                if (!flag) root_latch_.unlock();
+                return std::pair{now, flag};
+            }
+        }
+        {
+            bool flag = true;
+            page_id_t rootpageno = file_hdr_.root_page;
+            page_id_t pageno;
+            IxNodeHandle *now = FetchNode(rootpageno);
+            now->page->WLatch();
+            transaction->AddIntoDeletedPageSet(now->page);
+            // 只要还不是叶子节点,就在内部节点一路往下找
+            while (!now->page_hdr->is_leaf) {
+                pageno = now->InternalLookup(key);
+                now = FetchNode(pageno);
+                now->page->WLatch();
+                if (now->GetSize() > now->GetMinSize())  // 安全的节点
+                {
+                    flag = false;
+                    while (!transaction->GetDeletedPageSet()->empty()) {
+                        auto tmp_page = transaction->GetDeletedPageSet()->front();
+                        tmp_page->WUnlatch();
+                        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), false);
+                        transaction->GetDeletedPageSet()->pop_front();
+                    }
+                }
+                transaction->AddIntoDeletedPageSet(now->page);
+            }
+            if (!flag) root_latch_.unlock();
+            return std::pair{now, flag};
+        }
     }
 }
 
@@ -115,13 +173,13 @@ bool IxIndexHandle::GetValue(const char *key, std::vector<Rid> *result, Transact
     // 2. 在叶子节点中查找目标key值的位置，并读取key对应的rid
     // 3. 把rid存入result参数中
     // TODO 提示：使用完buffer_pool提供的page之后，记得unpin page；记得处理并发的上锁
-    std::pair<IxNodeHandle*, bool> ret = FindLeafPage(key, Operation::FIND, transaction);
+    std::pair<IxNodeHandle *, bool> ret = FindLeafPage(key, Operation::FIND, transaction);
     auto leaf = ret.first;
     Rid **value = new (Rid *);
     bool flag = leaf->LeafLookup(key, value);
     if (flag) result->push_back(**value);
     // delete value;
-    leaf->page->RUnlatch();
+    // leaf->page->RUnlatch();
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), false);
     return flag;
 }
@@ -141,7 +199,7 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     // TODO：记得unpin page；若当前叶子节点是最右叶子节点，则需要更新file_hdr_.last_leaf；记得处理并发的上锁
     // std::scoped_lock lock{root_latch_};
     root_latch_.lock();
-    std::pair<IxNodeHandle*, bool> ret = FindLeafPage(key, Operation::INSERT, transaction);
+    std::pair<IxNodeHandle *, bool> ret = FindLeafPage(key, Operation::INSERT, transaction);
     auto leaf = ret.first;
     // leaf->mutex_.unlock_shared();
     // leaf->mutex_.lock();
@@ -165,18 +223,16 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
         }
     }
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
-    while(!transaction->GetPageSet()->empty())
-    {
+    while (!transaction->GetPageSet()->empty()) {
         auto tmp_page = transaction->GetPageSet()->front();
         tmp_page->WUnlatch();
-        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),true);
+        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), true);
         transaction->GetPageSet()->pop_front();
     }
-    if(ret.second)
-    {
+    if (ret.second) {
         root_latch_.unlock();
     }
-    return after_insert>before_insert;
+    return after_insert > before_insert;
 }
 
 /**
@@ -227,7 +283,7 @@ IxNodeHandle *IxIndexHandle::Split(IxNodeHandle *node) {
             maintain_child(new_node, i);
         }
     }
-    buffer_pool_manager_->UnpinPage(new_node->GetPageId(),true);
+    buffer_pool_manager_->UnpinPage(new_node->GetPageId(), true);
     return new_node;
 }
 
@@ -336,18 +392,16 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
         // }
     }
     buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
-    while(!transaction->GetDeletedPageSet()->empty())
-    {
+    while (!transaction->GetDeletedPageSet()->empty()) {
         auto tmp_page = transaction->GetDeletedPageSet()->front();
         tmp_page->WUnlatch();
-        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(),true);
+        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), true);
         transaction->GetDeletedPageSet()->pop_front();
     }
-    if(ret.second)
-    {
+    if (ret.second) {
         root_latch_.unlock();
     }
-    return before_delete>after_delete;
+    return before_delete > after_delete;
 }
 
 /**
