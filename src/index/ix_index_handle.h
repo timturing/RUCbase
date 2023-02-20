@@ -26,7 +26,7 @@ class IxIndexHandle {
     // for search
     bool GetValue(const char *key, std::vector<Rid> *result, Transaction *transaction);
 
-    std::pair<IxNodeHandle*, bool> FindLeafPage(const char *key, Operation operation, Transaction *transaction);
+    IxNodeHandle* FindLeafPage(const char *key, Operation operation, Transaction *transaction);
 
     // for insert
     bool insert_entry(const char *key, const Rid &value, Transaction *transaction);
