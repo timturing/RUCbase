@@ -18,22 +18,17 @@ rucbase> insert into test values('Apple',4698);
 rucbase> insert into test values('Microsoft',6953);
 
 ------------------------------
->> insert into test values('IBM',310);
-rucbase> insert into test values('IBM',310);
-
-------------------------------
 >> SELECT Company, OrderNumber FROM test ORDER BY Company;
 rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company;
 +------------------+------------------+
 |          Company |      OrderNumber |
 +------------------+------------------+
 |            Apple |             4698 |
-|              IBM |              310 |
 |              IBM |             3532 |
 |        Microsoft |             6953 |
 |        Microsoft |             2356 |
 +------------------+------------------+
-Total record(s): 5
+Total record(s): 4
 
 ------------------------------
 >> SELECT Company, OrderNumber FROM test ORDER BY Company, OrderNumber;
@@ -42,12 +37,11 @@ rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company, OrderNumber;
 |          Company |      OrderNumber |
 +------------------+------------------+
 |            Apple |             4698 |
-|              IBM |              310 |
 |              IBM |             3532 |
 |        Microsoft |             2356 |
 |        Microsoft |             6953 |
 +------------------+------------------+
-Total record(s): 5
+Total record(s): 4
 
 ------------------------------
 >> SELECT Company, OrderNumber FROM test ORDER BY Company DESC, OrderNumber ASC;
@@ -57,11 +51,10 @@ rucbase> SELECT Company, OrderNumber FROM test ORDER BY Company DESC, OrderNumbe
 +------------------+------------------+
 |        Microsoft |             2356 |
 |        Microsoft |             6953 |
-|              IBM |              310 |
 |              IBM |             3532 |
 |            Apple |             4698 |
 +------------------+------------------+
-Total record(s): 5
+Total record(s): 4
 
 ------------------------------
 >> SELECT Company, OrderNumber FROM test ORDER BY OrderNumber ASC LIMIT 2;
@@ -69,8 +62,8 @@ rucbase> SELECT Company, OrderNumber FROM test ORDER BY OrderNumber ASC LIMIT 2;
 +------------------+------------------+
 |          Company |      OrderNumber |
 +------------------+------------------+
-|              IBM |              310 |
 |        Microsoft |             2356 |
+|              IBM |             3532 |
 +------------------+------------------+
 Total record(s): 2
 
