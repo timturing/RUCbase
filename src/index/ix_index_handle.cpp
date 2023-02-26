@@ -34,6 +34,29 @@ std::pair<IxNodeHandle *,bool> IxIndexHandle::FindLeafPage(const char *key, Oper
     }
     else if(operation==Operation::INSERT)
     {
+        // 乐观优化
+        // {
+        //     IxNodeHandle* next;
+        //     transaction->AddIntoPageSet(now->page);
+        //     while (!now->page_hdr->is_leaf) {
+        //         next = FetchNode(now->InternalLookup(key)) ;
+        //         if (next->GetSize() + 1 < next->GetMaxSize())  // 安全的节点
+        //         {  
+        //             while (!transaction->GetPageSet()->empty()) {
+        //                 // buffer_pool_manager_->UnpinPage(transaction->GetPageSet()->front()->GetPageId(), false);
+        //                 transaction->GetPageSet()->pop_front();
+        //             }
+        //         }
+        //         now = next;
+        //         transaction->AddIntoPageSet(now->page);
+        //     }
+        //     if (transaction->GetPageSet()->size() == 1) {//叶子节点就是安全节点
+        //         transaction->GetPageSet()->front()->WLatch();
+        //         root_latch_.unlock();
+        //         return std::pair{now, true};
+        //     }
+        //     transaction->GetPageSet()->clear();
+        // }
         now->page->WLatch();
         IxNodeHandle* next;
         bool unlocked = false;
@@ -49,7 +72,7 @@ std::pair<IxNodeHandle *,bool> IxIndexHandle::FindLeafPage(const char *key, Oper
                 }
                 while (!transaction->GetPageSet()->empty()) {// for auto+clear?
                     transaction->GetPageSet()->front()->WUnlatch();
-                    buffer_pool_manager_->UnpinPage(transaction->GetPageSet()->front()->GetPageId(), false);
+                    // buffer_pool_manager_->UnpinPage(transaction->GetPageSet()->front()->GetPageId(), false);
                     transaction->GetPageSet()->pop_front();
                 }
             }
@@ -70,7 +93,7 @@ std::pair<IxNodeHandle *,bool> IxIndexHandle::FindLeafPage(const char *key, Oper
         // 只要还不是叶子节点,就在内部节点一路往下找
         while (!now->page_hdr->is_leaf) {
             next = FetchNode(now->InternalLookup(key)) ;
-            if (next->GetSize() + 1 < next->GetMaxSize())  // 安全的节点
+            if (next->GetSize() >next->GetMinSize())  // 安全的节点
             {  
                 if(!unlocked)
                 {
@@ -79,7 +102,7 @@ std::pair<IxNodeHandle *,bool> IxIndexHandle::FindLeafPage(const char *key, Oper
                 }
                 while (!transaction->GetDeletedPageSet()->empty()) {// for auto+clear?
                     transaction->GetDeletedPageSet()->front()->WUnlatch();
-                    buffer_pool_manager_->UnpinPage(transaction->GetDeletedPageSet()->front()->GetPageId(), false);
+                    // buffer_pool_manager_->UnpinPage(transaction->GetDeletedPageSet()->front()->GetPageId(), false);
                     transaction->GetDeletedPageSet()->pop_front();
                 }
             }
@@ -151,7 +174,7 @@ bool IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction 
     }
     while (!transaction->GetPageSet()->empty()) {
         transaction->GetPageSet()->front()->WUnlatch();
-        buffer_pool_manager_->UnpinPage(transaction->GetPageSet()->front()->GetPageId(), true);
+        // buffer_pool_manager_->UnpinPage(transaction->GetPageSet()->front()->GetPageId(), true);
         transaction->GetPageSet()->pop_front();
     }
     if(!tmp.second)
@@ -285,11 +308,11 @@ bool IxIndexHandle::delete_entry(const char *key, Transaction *transaction) {
             maintain_parent(leaf);
         }
     }
-    buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
+    // buffer_pool_manager_->UnpinPage(leaf->GetPageId(), true);
     while (!transaction->GetDeletedPageSet()->empty()) {
         auto tmp_page = transaction->GetDeletedPageSet()->front();
         tmp_page->WUnlatch();
-        buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), true);
+        // buffer_pool_manager_->UnpinPage(tmp_page->GetPageId(), true);
         transaction->GetDeletedPageSet()->pop_front();
     }
     if (!ret.second) {
